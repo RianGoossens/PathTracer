@@ -4,7 +4,8 @@ A bi-directional path tracer written in Rust.
 ## Todo
 - [X] Write images
 - [X] Linear algebra library
-- [ ] Basic shape
+- [X] Basic shape
+- [X] Rendered a silhouette
 - [ ] Basic light
 - [ ] Simple backward ray tracing
 - [ ] BDPT
