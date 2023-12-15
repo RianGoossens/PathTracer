@@ -1,0 +1,175 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'path-tracer'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=path-tracer"
+                ],
+                "filter": {
+                    "name": "path-tracer",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'image_example'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=image_example",
+                    "--package=path-tracer"
+                ],
+                "filter": {
+                    "name": "image_example",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'image_example'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=image_example",
+                    "--package=path-tracer"
+                ],
+                "filter": {
+                    "name": "image_example",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'inverting_vectors'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=inverting_vectors",
+                    "--package=path-tracer"
+                ],
+                "filter": {
+                    "name": "inverting_vectors",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'inverting_vectors'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=inverting_vectors",
+                    "--package=path-tracer"
+                ],
+                "filter": {
+                    "name": "inverting_vectors",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'nalgebra_example'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=nalgebra_example",
+                    "--package=path-tracer"
+                ],
+                "filter": {
+                    "name": "nalgebra_example",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'nalgebra_example'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=nalgebra_example",
+                    "--package=path-tracer"
+                ],
+                "filter": {
+                    "name": "nalgebra_example",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'sphere'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=sphere",
+                    "--package=path-tracer"
+                ],
+                "filter": {
+                    "name": "sphere",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'sphere'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=sphere",
+                    "--package=path-tracer"
+                ],
+                "filter": {
+                    "name": "sphere",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

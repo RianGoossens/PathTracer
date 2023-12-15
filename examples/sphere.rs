@@ -1,12 +1,11 @@
 use std::rc::Rc;
 
-use image::{Rgb, RgbImage};
 use na::{Similarity3, Translation3, Vector3};
 use nalgebra as na;
-use path_tracer::{Camera, Material, Object, Scene, Sphere};
+use path_tracer::{reflect, Camera, Material, Object, RenderBuffer, Scene, Sphere};
 
 fn main() {
-    let camera = Camera::new(300, 200, 70., 1.0, 100.0);
+    let camera = Camera::new(200, 200, 70., 1.0, 100.0);
 
     let sphere_shape = Rc::new(Sphere);
 
@@ -22,9 +21,9 @@ fn main() {
     let sphere_b = Object::new(
         sphere_shape,
         na::convert(Similarity3::new(
-            Vector3::new(-2.5, -1., -3.),
+            Vector3::new(0., 0., -3.),
             Vector3::zeros(),
-            1.5,
+            1.,
         )),
         Material {
             color: Vector3::new(1., 0., 0.),
@@ -38,29 +37,32 @@ fn main() {
         lights: vec![],
     };
 
-    let image = RgbImage::from_fn(camera.width, camera.height, |x, y| {
-        let ray = camera.get_ray(x, y);
+    let mut render_buffer = RenderBuffer::new(camera.width, camera.height);
 
-        let ray = ray.transform(&camera.inverse_transform);
+    for x in 0..camera.width {
+        for y in 0..camera.height {
+            let ray = camera.get_ray(x, y);
 
-        let intersection = scene.intersection(&ray);
+            let ray = ray.transform(&camera.inverse_transform);
 
-        if let Some((_object, intersection)) = intersection {
-            let reflection =
-                ray.direction - 2. * intersection.normal.dot(&ray.direction) * intersection.normal;
+            let intersection = scene.intersection(&ray);
 
-            let light_direction =
-                (Vector3::new(0., 0., -4.) - intersection.position.coords).normalize();
+            if let Some((_object, intersection)) = intersection {
+                let reflection = reflect(ray.direction, intersection.normal);
 
-            let angle = reflection.dot(&light_direction);
+                let light_direction =
+                    (Vector3::new(0., 0., -5.) - intersection.position.coords).normalize();
 
-            let lightness = (angle.max(0.) * 255.) as u8;
+                let angle = reflection.dot(&light_direction);
 
-            Rgb([lightness, lightness, lightness])
-        } else {
-            Rgb([0, 0, 0])
+                let lightness = angle.max(0.);
+
+                render_buffer[(x, y)] = Vector3::new(lightness, lightness, lightness);
+            }
         }
-    });
+    }
+
+    let image = render_buffer.to_image();
 
     image.save("image.png").expect("Could not save image");
 }
