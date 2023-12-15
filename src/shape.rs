@@ -1,0 +1,81 @@
+use nalgebra::{Matrix4, Point3, Vector3};
+
+use crate::Ray;
+
+#[derive(Debug, Clone, Copy)]
+pub struct IntersectionInfo {
+    pub distance: f64,
+    pub position: Point3<f64>,
+    pub normal: Vector3<f64>,
+}
+
+impl IntersectionInfo {
+    pub fn transform(&self, matrix: &Matrix4<f64>, inverse: &Matrix4<f64>) -> Self {
+        let new_position = matrix.transform_point(&self.position);
+        let new_normal = inverse
+            .transpose()
+            .transform_vector(&self.normal)
+            .normalize();
+        IntersectionInfo {
+            position: new_position,
+            normal: new_normal,
+            ..*self
+        }
+    }
+}
+
+pub trait Shape {
+    fn intersection_distances(&self, ray: &Ray) -> Option<f64>;
+
+    fn sample_intersection_info(&self, ray: &Ray, distance: f64) -> IntersectionInfo;
+
+    fn intersection(&self, ray: &Ray) -> Option<IntersectionInfo> {
+        self.intersection_distances(ray)
+            .map(|distance| self.sample_intersection_info(ray, distance))
+    }
+
+    fn blocks(&self, ray: &Ray) -> bool {
+        self.intersection_distances(ray).is_some()
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct Sphere;
+
+impl Shape for Sphere {
+    fn intersection_distances(&self, ray: &Ray) -> Option<f64> {
+        let a = ray.direction.dot(&ray.direction);
+        let b = 2. * ray.origin.coords.dot(&ray.direction);
+        let c = ray.origin.coords.dot(&ray.origin.coords) - 1.;
+
+        let determinant = b * b - 4. * a * c;
+        if determinant < 0. {
+            None
+        } else {
+            let d_root = determinant.sqrt();
+            let t1 = (-b - d_root) / (2. * a);
+            let t2 = (-b + d_root) / (2. * a);
+            if t1 < 0. {
+                if t2 < 0. {
+                    None
+                } else {
+                    Some(t2)
+                }
+            } else if t2 < 0. {
+                Some(t1)
+            } else {
+                Some(t1.min(t2))
+            }
+        }
+    }
+
+    fn sample_intersection_info(&self, ray: &Ray, distance: f64) -> IntersectionInfo {
+        let position = ray.origin + distance * ray.direction;
+        let normal = position.coords;
+        IntersectionInfo {
+            distance,
+            position,
+            normal,
+        }
+    }
+}

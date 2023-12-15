@@ -1,42 +1,62 @@
 use std::rc::Rc;
 
 use image::{Rgb, RgbImage};
-use na::Point3;
-use nalgebra::{self as na, Perspective3, Transform3, Translation3, Vector3};
-use path_tracer::{Camera, Material, Object, Ray, Sphere};
+use na::{Similarity3, Translation3, Vector3};
+use nalgebra as na;
+use path_tracer::{Camera, Material, Object, Scene, Sphere};
 
 fn main() {
-    let camera = Camera {
-        transform: Transform3::from_matrix_unchecked(
-            *Perspective3::<f64>::new(1., std::f64::consts::PI / 4.0, 1.0, 100.0).as_matrix(),
-        ),
-    };
+    let camera = Camera::new(300, 200, 70., 1.0, 100.0);
 
-    let sphere = Object {
-        shape: Rc::new(Sphere),
-        material: Material {
+    let sphere_shape = Rc::new(Sphere);
+
+    let sphere_a = Object::new(
+        sphere_shape.clone(),
+        na::convert(Translation3::new(1., 2., -5.)),
+        Material {
             color: Vector3::new(1., 0., 0.),
             roughness: 0.5,
         },
-        transform: na::convert(Translation3::new(0., 0., -5.)),
+    );
+
+    let sphere_b = Object::new(
+        sphere_shape,
+        na::convert(Similarity3::new(
+            Vector3::new(-2.5, -1., -3.),
+            Vector3::zeros(),
+            1.5,
+        )),
+        Material {
+            color: Vector3::new(1., 0., 0.),
+            roughness: 0.5,
+        },
+    );
+
+    let scene = Scene {
+        camera,
+        objects: vec![sphere_a, sphere_b],
+        lights: vec![],
     };
 
-    let image = RgbImage::from_fn(100, 100, |x, y| {
-        let x = x as f64 / 50. - 1.;
-        let y = y as f64 / 50. - 1.;
-        let origin = Point3::new(x, y, -1.);
-        let direction = Vector3::new(0., 0., 1.);
-        let ray = Ray { origin, direction };
+    let image = RgbImage::from_fn(camera.width, camera.height, |x, y| {
+        let ray = camera.get_ray(x, y);
 
-        let inverse_camera = camera.transform.try_inverse().unwrap();
-        let mut camera_ray = ray.transform(inverse_camera.matrix());
-        camera_ray.direction.normalize_mut();
-        println!("{camera_ray:?}");
+        let ray = ray.transform(&camera.inverse_transform);
 
-        let object_ray = camera_ray.transform(sphere.transform.inverse().matrix());
+        let intersection = scene.intersection(&ray);
 
-        if sphere.shape.blocks(&object_ray) {
-            Rgb([255, 255, 255])
+        if let Some((_object, intersection)) = intersection {
+            let reflection =
+                ray.direction - 2. * intersection.normal.dot(&ray.direction) * intersection.normal;
+
+            let light_direction =
+                (Vector3::new(0., 0., -4.) - intersection.position.coords).normalize();
+
+            let angle = reflection.dot(&light_direction);
+
+            let lightness = (angle.max(0.) * 255.) as u8;
+
+            Rgb([lightness, lightness, lightness])
         } else {
             Rgb([0, 0, 0])
         }

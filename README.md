@@ -6,7 +6,8 @@ A bi-directional path tracer written in Rust.
 - [X] Linear algebra library
 - [X] Basic shape
 - [X] Rendered a silhouette
-- [ ] Basic light
+- [X] Basic light
+- [ ] Create a renderer
 - [ ] Simple backward ray tracing
 - [ ] BDPT
 - [ ] Find a good name
