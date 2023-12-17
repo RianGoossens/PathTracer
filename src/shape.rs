@@ -1,4 +1,8 @@
-use nalgebra::{Matrix4, Point3, Vector3};
+use nalgebra as na;
+
+use na::{Matrix4, Point3, Vector3};
+use rand::thread_rng;
+use rand_distr::StandardNormal;
 
 use crate::Ray;
 
@@ -28,6 +32,8 @@ pub trait Shape {
     fn intersection_distances(&self, ray: &Ray) -> Option<f64>;
 
     fn sample_intersection_info(&self, ray: &Ray, distance: f64) -> IntersectionInfo;
+
+    fn sample_emissive_ray(&self) -> Ray;
 
     fn intersection(&self, ray: &Ray) -> Option<IntersectionInfo> {
         self.intersection_distances(ray)
@@ -78,6 +84,16 @@ impl Shape for Sphere {
             normal,
         }
     }
+
+    fn sample_emissive_ray(&self) -> Ray {
+        let random_vector =
+            Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
+
+        Ray {
+            origin: random_vector.into(),
+            direction: random_vector,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -92,5 +108,12 @@ impl<S: Shape> Shape for Inverted<S> {
         let mut intersection_info = self.0.sample_intersection_info(ray, distance);
         intersection_info.normal *= -1.;
         intersection_info
+    }
+
+    fn sample_emissive_ray(&self) -> Ray {
+        let mut ray = self.0.sample_emissive_ray();
+        ray.direction *= -1.;
+
+        ray
     }
 }

@@ -1,21 +1,48 @@
-use crate::{shape::IntersectionInfo, Camera, Object, PointLight, Ray};
+use crate::{shape::IntersectionInfo, Camera, Object, Ray};
 
 pub struct Scene {
     pub camera: Camera,
     pub objects: Vec<Object>,
-    pub lights: Vec<PointLight>,
+    light_indices: Vec<usize>,
 }
 
 impl Scene {
+    pub fn new(camera: Camera, objects: &[Object]) -> Self {
+        let light_indices = objects
+            .iter()
+            .enumerate()
+            .filter_map(|(i, object)| {
+                if object.material.emissive {
+                    Some(i)
+                } else {
+                    None
+                }
+            })
+            .collect();
+        Self {
+            camera,
+            objects: objects.into(),
+            light_indices,
+        }
+    }
+
     pub fn intersection(&self, ray: &Ray) -> Option<(&Object, IntersectionInfo)> {
         let query = self
             .objects
             .iter()
-            .filter_map(|object| {
+            .flat_map(|object| {
                 let intersection = object.local_intersection(ray);
                 intersection.map(|intersection| (object, intersection))
             })
-            .min_by(|(_, a), (_, b)| a.distance.total_cmp(&b.distance));
+            .reduce(
+                |closest @ (_, closest_intersection), current @ (_, intersection)| {
+                    if intersection.distance < closest_intersection.distance {
+                        current
+                    } else {
+                        closest
+                    }
+                },
+            );
 
         if let Some((object, intersection)) = query {
             Some((
@@ -25,5 +52,12 @@ impl Scene {
         } else {
             None
         }
+    }
+
+    pub fn lights(&self) -> Vec<&Object> {
+        self.light_indices
+            .iter()
+            .map(|i| &self.objects[*i])
+            .collect()
     }
 }

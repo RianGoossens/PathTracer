@@ -7,7 +7,12 @@ A bi-directional path tracer written in Rust.
 - [X] Basic shape
 - [X] Rendered a silhouette
 - [X] Basic light
-- [ ] Create a renderer
-- [ ] Simple backward ray tracing
+- [X] Create a renderer
+- [X] Simple backward ray tracing
+- [X] Sphere Shape
+- [X] Inverted Shapes
+- [X] Anti-aliasing
+- [X] Focal point
+- [ ] Aperture shape
 - [ ] BDPT
 - [ ] Find a good name

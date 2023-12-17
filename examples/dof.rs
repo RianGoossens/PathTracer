@@ -9,20 +9,20 @@ use na::{Similarity3, Vector3};
 const NUM_SAMPLES: u16 = 2500;
 
 fn main() {
-    let camera = Camera::new(300, 300, 55., 1.0, 100.0);
+    let camera = Camera::new(300, 300, 70., 1.0, 100.0);
 
     let sphere_shape = Rc::new(Sphere);
 
     let sphere_a = Object::new(
         sphere_shape.clone(),
         na::convert(Similarity3::new(
-            Vector3::new(1.5, 1., -5.),
+            Vector3::new(1.5, -0.5, -5.),
             Vector3::zeros(),
             1.,
         )),
         Material {
-            color: Vector3::new(0.8, 0.6, 0.7),
-            roughness: 0.1,
+            color: Vector3::new(0.8, 0.1, 0.1),
+            roughness: 0.9,
             ..Default::default()
         },
     );
@@ -30,42 +30,60 @@ fn main() {
     let sphere_b = Object::new(
         sphere_shape.clone(),
         na::convert(Similarity3::new(
-            Vector3::new(-1.5, 1., -5.),
+            Vector3::new(1., 0., -6.),
             Vector3::zeros(),
             1.,
         )),
         Material {
-            color: Vector3::new(0.4, 0.8, 0.3),
-            roughness: 0.8,
+            color: Vector3::new(0.1, 0.8, 0.1),
+            roughness: 0.9,
             ..Default::default()
         },
     );
 
     let sphere_c = Object::new(
-        Rc::new(Inverted(Sphere)),
-        na::convert(Similarity3::new(Vector3::zeros(), Vector3::zeros(), 5.)),
+        sphere_shape.clone(),
+        na::convert(Similarity3::new(
+            Vector3::new(0.5, 0.5, -7.),
+            Vector3::zeros(),
+            1.,
+        )),
         Material {
-            color: Vector3::new(0.6, 0.7, 0.5),
+            color: Vector3::new(0.1, 0.1, 0.8),
             roughness: 0.9,
             ..Default::default()
         },
     );
 
     let light = Object::new(
-        sphere_shape,
+        sphere_shape.clone(),
         na::convert(Similarity3::new(
-            Vector3::new(0., -0.5, -5.),
+            Vector3::new(-1.5, 0., -6.),
             Vector3::zeros(),
-            0.75,
+            1.,
         )),
         Material {
-            color: Vector3::new(3., 3., 3.),
+            color: Vector3::new(6., 6., 6.),
             emissive: true,
+            roughness: 1.,
+        },
+    );
+
+    let environment = Object::new(
+        Rc::new(Inverted(Sphere)),
+        na::convert(Similarity3::new(
+            Vector3::new(0., 0., -6.),
+            Vector3::zeros(),
+            6.1,
+        )),
+        Material {
+            color: Vector3::new(0.9, 0.9, 0.9),
+            roughness: 0.2,
             ..Default::default()
         },
     );
 
-    let scene = Scene::new(camera, &[sphere_a, sphere_b, sphere_c, light]);
+    let scene = Scene::new(camera, &[sphere_a, sphere_b, sphere_c, light, environment]);
 
     let start = Instant::now();
     let renderer = Renderer;
