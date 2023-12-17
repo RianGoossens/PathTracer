@@ -17,7 +17,7 @@ fn main() {
 
         let angle = vector_a.dot(&vector_b).acos() / PI * 180.;
 
-        let reverse = reflect(vector_a, vector_b);
+        let reverse = reflect(&vector_a, &vector_b);
 
         let reverse_angle = reverse.dot(&vector_b).acos() / PI * 180.;
 

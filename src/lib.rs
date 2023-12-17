@@ -1,6 +1,7 @@
 use nalgebra::{Point3, Vector3};
 
 pub mod camera;
+pub mod material;
 pub mod object;
 pub mod ray;
 pub mod render_buffer;
@@ -9,26 +10,22 @@ pub mod scene;
 pub mod shape;
 
 pub use camera::Camera;
+pub use material::Material;
 pub use object::Object;
 pub use ray::Ray;
 pub use render_buffer::RenderBuffer;
+pub use renderer::Renderer;
 pub use scene::Scene;
 pub use shape::{Shape, Sphere};
 
-pub fn reflect(incoming: Vector3<f64>, normal: Vector3<f64>) -> Vector3<f64> {
-    incoming - 2. * normal.dot(&incoming) * normal
+pub fn reflect(incoming: &Vector3<f64>, normal: &Vector3<f64>) -> Vector3<f64> {
+    incoming - 2. * normal.dot(incoming) * normal
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct Hit {
     pub position: Point3<f64>,
     pub normal: Vector3<f64>,
-}
-
-#[derive(Clone, Copy, Debug)]
-pub struct Material {
-    pub color: Vector3<f64>,
-    pub roughness: f64,
 }
 
 #[derive(Clone, Copy, Debug)]

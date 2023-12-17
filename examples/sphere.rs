@@ -1,66 +1,70 @@
 use std::rc::Rc;
 
-use na::{Similarity3, Translation3, Vector3};
+use path_tracer::{Camera, Material, Object, Renderer, Scene, Sphere};
+
 use nalgebra as na;
-use path_tracer::{reflect, Camera, Material, Object, RenderBuffer, Scene, Sphere};
+
+use na::{Similarity3, Translation3, Vector3};
+
+const NUM_SAMPLES: u16 = 1000;
 
 fn main() {
-    let camera = Camera::new(200, 200, 70., 1.0, 100.0);
+    let camera = Camera::new(300, 300, 70., 1.0, 100.0);
 
     let sphere_shape = Rc::new(Sphere);
 
     let sphere_a = Object::new(
         sphere_shape.clone(),
-        na::convert(Translation3::new(1., 2., -5.)),
+        na::convert(Translation3::new(1., 2., -5.5)),
         Material {
-            color: Vector3::new(1., 0., 0.),
-            roughness: 0.5,
+            color: Vector3::new(0.6, 0.2, 0.7),
+            roughness: 0.1,
+            ..Default::default()
         },
     );
 
     let sphere_b = Object::new(
-        sphere_shape,
+        sphere_shape.clone(),
         na::convert(Similarity3::new(
-            Vector3::new(0., 0., -3.),
+            Vector3::new(-1., 2., -5.),
             Vector3::zeros(),
             1.,
         )),
         Material {
-            color: Vector3::new(1., 0., 0.),
-            roughness: 0.5,
+            color: Vector3::new(0.4, 0.8, 0.3),
+            roughness: 0.8,
+            ..Default::default()
+        },
+    );
+
+    let light = Object::new(
+        sphere_shape,
+        na::convert(Similarity3::new(
+            Vector3::new(0., 0., -5.),
+            Vector3::zeros(),
+            1.,
+        )),
+        Material {
+            color: Vector3::new(3., 3., 3.),
+            emissive: true,
+            ..Default::default()
         },
     );
 
     let scene = Scene {
         camera,
-        objects: vec![sphere_a, sphere_b],
+        objects: vec![sphere_a, sphere_b, light],
         lights: vec![],
     };
 
-    let mut render_buffer = RenderBuffer::new(camera.width, camera.height);
+    let renderer = Renderer;
+    let mut render_buffer = renderer.render(&scene);
 
-    for x in 0..camera.width {
-        for y in 0..camera.height {
-            let ray = camera.get_ray(x, y);
-
-            let ray = ray.transform(&camera.inverse_transform);
-
-            let intersection = scene.intersection(&ray);
-
-            if let Some((_object, intersection)) = intersection {
-                let reflection = reflect(ray.direction, intersection.normal);
-
-                let light_direction =
-                    (Vector3::new(0., 0., -5.) - intersection.position.coords).normalize();
-
-                let angle = reflection.dot(&light_direction);
-
-                let lightness = angle.max(0.);
-
-                render_buffer[(x, y)] = Vector3::new(lightness, lightness, lightness);
-            }
-        }
+    for _ in 0..NUM_SAMPLES - 1 {
+        render_buffer += renderer.render(&scene);
     }
+
+    render_buffer /= NUM_SAMPLES as f64;
 
     let image = render_buffer.to_image();
 

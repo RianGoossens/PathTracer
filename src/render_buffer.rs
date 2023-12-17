@@ -1,8 +1,8 @@
-use std::ops::{Index, IndexMut};
+use std::ops::{AddAssign, DivAssign, Index, IndexMut};
 
 use image::{Rgb, RgbImage};
 use nalgebra::Vector3;
-
+#[derive(Debug)]
 pub struct RenderBuffer {
     width: u32,
     height: u32,
@@ -50,5 +50,23 @@ impl IndexMut<(u32, u32)> for RenderBuffer {
     fn index_mut(&mut self, (row, column): (u32, u32)) -> &mut Self::Output {
         let index = row * self.height + column;
         &mut self.buffer[index as usize]
+    }
+}
+
+impl AddAssign<Self> for RenderBuffer {
+    fn add_assign(&mut self, rhs: Self) {
+        for x in 0..self.width.min(rhs.width) {
+            for y in 0..self.height.min(rhs.height) {
+                self[(x, y)] += rhs[(x, y)];
+            }
+        }
+    }
+}
+
+impl DivAssign<f64> for RenderBuffer {
+    fn div_assign(&mut self, rhs: f64) {
+        for vector in self.buffer.iter_mut() {
+            vector.iter_mut().for_each(|x| *x /= rhs);
+        }
     }
 }
