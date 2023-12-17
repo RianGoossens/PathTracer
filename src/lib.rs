@@ -1,5 +1,6 @@
 use nalgebra::{Point3, Vector3};
 
+pub mod aperture;
 pub mod camera;
 pub mod material;
 pub mod object;
@@ -9,6 +10,7 @@ pub mod renderer;
 pub mod scene;
 pub mod shape;
 
+pub use aperture::Aperture;
 pub use camera::Camera;
 pub use material::Material;
 pub use object::Object;

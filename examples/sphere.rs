@@ -1,15 +1,17 @@
 use std::{rc::Rc, time::Instant};
 
-use path_tracer::{Camera, Inverted, Material, Object, Renderer, Scene, Sphere};
+use path_tracer::{
+    aperture::PinholeAperture, Camera, Inverted, Material, Object, Renderer, Scene, Sphere,
+};
 
 use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: u16 = 2500;
+const NUM_SAMPLES: u16 = 100;
 
 fn main() {
-    let camera = Camera::new(300, 300, 55., 1.0, 100.0);
+    let camera = Camera::new(300, 300, 55., 1.0, 100.0, PinholeAperture, 0.);
 
     let sphere_shape = Rc::new(Sphere);
 

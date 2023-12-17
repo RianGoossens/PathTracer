@@ -13,6 +13,7 @@ A bi-directional path tracer written in Rust.
 - [X] Inverted Shapes
 - [X] Anti-aliasing
 - [X] Focal point
-- [ ] Aperture shape
+- [X] Aperture shape
+- [ ] Parallel rendering
 - [ ] BDPT
 - [ ] Find a good name

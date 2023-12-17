@@ -1,8 +1,17 @@
-use nalgebra::{Matrix4, Perspective3, Point3};
+use nalgebra::{Perspective3, Point3};
 use rand::{thread_rng, Rng};
-use rand_distr::Normal;
 
-use crate::Ray;
+use crate::{Aperture, Ray};
+
+pub struct Camera {
+    pub transform: Perspective3<f64>,
+    pub width: u32,
+    pub height: u32,
+    pub aspect: f64,
+    pub aperture: Box<dyn Aperture>,
+    pub focal_length: f64,
+    frustrum_data: FrustrumData,
+}
 
 #[derive(Clone, Copy, Debug)]
 struct FrustrumData {
@@ -15,6 +24,22 @@ struct FrustrumData {
 }
 
 impl FrustrumData {
+    fn new(transform: &Perspective3<f64>) -> Self {
+        let inverse_transform = transform.inverse();
+
+        let near_point = inverse_transform.transform_point(&Point3::new(1., 1., -1.));
+        let far_point = inverse_transform.transform_point(&Point3::new(1., 1., 1.));
+
+        FrustrumData {
+            zfar: transform.zfar(),
+            znear: transform.znear(),
+            far_half_height: far_point.y,
+            far_half_width: far_point.x,
+            near_half_height: near_point.y,
+            near_half_width: near_point.x,
+        }
+    }
+
     fn get_ray_from_normalized_coordinates(&self, x: f64, y: f64) -> Ray {
         let origin = Point3::new(
             x * self.near_half_width,
@@ -34,18 +59,16 @@ impl FrustrumData {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct Camera {
-    pub transform: Perspective3<f64>,
-    pub inverse_transform: Matrix4<f64>,
-    pub width: u32,
-    pub height: u32,
-    pub aspect: f64,
-    frustrum_data: FrustrumData,
-}
-
 impl Camera {
-    pub fn new(width: u32, height: u32, fov_degrees: f64, znear: f64, zfar: f64) -> Self {
+    pub fn new<Ap: Aperture + 'static>(
+        width: u32,
+        height: u32,
+        fov_degrees: f64,
+        znear: f64,
+        zfar: f64,
+        aperture: Ap,
+        focal_distance: f64,
+    ) -> Self {
         let aspect = width as f64 / height as f64;
         let transform = Perspective3::new(
             aspect,
@@ -53,26 +76,15 @@ impl Camera {
             znear,
             zfar,
         );
-        let inverse_transform = transform.inverse();
-
-        let near_point = inverse_transform.transform_point(&Point3::new(1., 1., -1.));
-        let far_point = inverse_transform.transform_point(&Point3::new(1., 1., 1.));
-
-        let frustrum_data = FrustrumData {
-            zfar,
-            znear,
-            far_half_height: far_point.y,
-            far_half_width: far_point.x,
-            near_half_height: near_point.y,
-            near_half_width: near_point.x,
-        };
+        let frustrum_data = FrustrumData::new(&transform);
 
         Self {
             transform,
-            inverse_transform,
             width,
             height,
             aspect,
+            aperture: Box::new(aperture),
+            focal_length: focal_distance,
             frustrum_data,
         }
     }
@@ -87,22 +99,8 @@ impl Camera {
         let x = 2. * (x / (self.width - 1) as f64) - 1.;
         let y = -2. * (y / (self.height - 1) as f64) + 1.;
 
-        let Ray {
-            mut origin,
-            direction,
-        } = self.frustrum_data.get_ray_from_normalized_coordinates(x, y);
+        let source_ray = self.frustrum_data.get_ray_from_normalized_coordinates(x, y);
 
-        const FOCAL_LENGTH: f64 = 5.;
-        const APERTURE_SIZE: f64 = 0.5;
-
-        let focal_point = direction * FOCAL_LENGTH;
-
-        let distribution = Normal::new(0., APERTURE_SIZE / 2.).unwrap();
-        origin.x += rng.sample(distribution);
-        origin.y += rng.sample(distribution);
-
-        let direction = (focal_point - origin.coords).normalize();
-
-        Ray { origin, direction }
+        self.aperture.sample_ray(&source_ray, self.focal_length)
     }
 }

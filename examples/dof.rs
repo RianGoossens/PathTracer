@@ -1,6 +1,8 @@
 use std::{rc::Rc, time::Instant};
 
-use path_tracer::{Camera, Inverted, Material, Object, Renderer, Scene, Sphere};
+use path_tracer::{
+    aperture::RegularPolygonAperture, Camera, Inverted, Material, Object, Renderer, Scene, Sphere,
+};
 
 use nalgebra as na;
 
@@ -9,7 +11,8 @@ use na::{Similarity3, Vector3};
 const NUM_SAMPLES: u16 = 2500;
 
 fn main() {
-    let camera = Camera::new(300, 300, 70., 1.0, 100.0);
+    let aperture = RegularPolygonAperture::new(1., 6);
+    let camera = Camera::new(300, 300, 70., 1.0, 100.0, aperture, 5.);
 
     let sphere_shape = Rc::new(Sphere);
 
