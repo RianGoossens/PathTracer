@@ -1,14 +1,15 @@
 use std::{rc::Rc, time::Instant};
 
 use path_tracer::{
-    aperture::RegularPolygonAperture, Camera, Inverted, Material, Object, Renderer, Scene, Sphere,
+    aperture::RegularPolygonAperture, BackwardRenderer, Camera, Inverted, Material, Object,
+    Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: u16 = 2500;
+const NUM_SAMPLES: u32 = 100;
 
 fn main() {
     let aperture = RegularPolygonAperture::new(1., 6);
@@ -89,14 +90,9 @@ fn main() {
     let scene = Scene::new(camera, &[sphere_a, sphere_b, sphere_c, light, environment]);
 
     let start = Instant::now();
-    let renderer = Renderer;
-    let mut render_buffer = renderer.render(&scene);
+    let renderer = BackwardRenderer::new(5).iterative(NUM_SAMPLES);
+    let render_buffer = renderer.render(&scene);
 
-    for _ in 0..NUM_SAMPLES - 1 {
-        render_buffer += renderer.render(&scene);
-    }
-
-    render_buffer /= NUM_SAMPLES as f64;
     println!("Rendering took {:?}", start.elapsed());
 
     let image = render_buffer.to_image();

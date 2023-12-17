@@ -16,7 +16,7 @@ pub use material::Material;
 pub use object::Object;
 pub use ray::Ray;
 pub use render_buffer::RenderBuffer;
-pub use renderer::Renderer;
+pub use renderer::{BackwardRenderer, Renderer};
 pub use scene::Scene;
 pub use shape::{Inverted, Shape, Sphere};
 
