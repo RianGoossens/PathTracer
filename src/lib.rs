@@ -16,7 +16,7 @@ pub use ray::Ray;
 pub use render_buffer::RenderBuffer;
 pub use renderer::Renderer;
 pub use scene::Scene;
-pub use shape::{Shape, Sphere};
+pub use shape::{Inverted, Shape, Sphere};
 
 pub fn reflect(incoming: &Vector3<f64>, normal: &Vector3<f64>) -> Vector3<f64> {
     incoming - 2. * normal.dot(incoming) * normal

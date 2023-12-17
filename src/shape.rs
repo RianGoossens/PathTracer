@@ -79,3 +79,18 @@ impl Shape for Sphere {
         }
     }
 }
+
+#[derive(Debug, Clone, Copy)]
+pub struct Inverted<S: Shape>(pub S);
+
+impl<S: Shape> Shape for Inverted<S> {
+    fn intersection_distances(&self, ray: &Ray) -> Option<f64> {
+        self.0.intersection_distances(ray)
+    }
+
+    fn sample_intersection_info(&self, ray: &Ray, distance: f64) -> IntersectionInfo {
+        let mut intersection_info = self.0.sample_intersection_info(ray, distance);
+        intersection_info.normal *= -1.;
+        intersection_info
+    }
+}
