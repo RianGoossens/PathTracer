@@ -1,23 +1,27 @@
-use std::rc::Rc;
+use std::{rc::Rc, time::Instant};
 
 use path_tracer::{Camera, Material, Object, Renderer, Scene, Sphere};
 
 use nalgebra as na;
 
-use na::{Similarity3, Translation3, Vector3};
+use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: u16 = 1000;
+const NUM_SAMPLES: u16 = 100;
 
 fn main() {
-    let camera = Camera::new(300, 300, 70., 1.0, 100.0);
+    let camera = Camera::new(300, 300, 50., 1.0, 100.0);
 
     let sphere_shape = Rc::new(Sphere);
 
     let sphere_a = Object::new(
         sphere_shape.clone(),
-        na::convert(Translation3::new(1., 2., -5.5)),
+        na::convert(Similarity3::new(
+            Vector3::new(1., 1., -6.),
+            Vector3::zeros(),
+            1.2,
+        )),
         Material {
-            color: Vector3::new(0.6, 0.2, 0.7),
+            color: Vector3::new(0.8, 0.6, 0.7),
             roughness: 0.1,
             ..Default::default()
         },
@@ -26,7 +30,7 @@ fn main() {
     let sphere_b = Object::new(
         sphere_shape.clone(),
         na::convert(Similarity3::new(
-            Vector3::new(-1., 2., -5.),
+            Vector3::new(-1., 1., -5.),
             Vector3::zeros(),
             1.,
         )),
@@ -40,7 +44,7 @@ fn main() {
     let light = Object::new(
         sphere_shape,
         na::convert(Similarity3::new(
-            Vector3::new(0., 0., -5.),
+            Vector3::new(0., -1., -5.),
             Vector3::zeros(),
             1.,
         )),
@@ -57,6 +61,7 @@ fn main() {
         lights: vec![],
     };
 
+    let start = Instant::now();
     let renderer = Renderer;
     let mut render_buffer = renderer.render(&scene);
 
@@ -65,6 +70,7 @@ fn main() {
     }
 
     render_buffer /= NUM_SAMPLES as f64;
+    println!("Rendering took {:?}", start.elapsed());
 
     let image = render_buffer.to_image();
 

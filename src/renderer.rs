@@ -14,12 +14,9 @@ impl SimpleRenderer {
 
         for x in 0..width {
             for y in 0..height {
-                let ray = scene
-                    .camera
-                    .get_ray(x, y)
-                    .expect("Ray requested was out of bounds");
+                let ray = scene.camera.get_ray(x, y);
 
-                let intersection = scene.intersection(ray);
+                let intersection = scene.intersection(&ray);
 
                 if let Some((_object, intersection)) = intersection {
                     let reflection = reflect(&ray.direction, &intersection.normal);
@@ -52,12 +49,9 @@ impl Renderer {
 
         for x in 0..width {
             for y in 0..height {
-                let ray = scene
-                    .camera
-                    .get_ray(x, y)
-                    .expect("Ray requested was out of bounds");
+                let ray = scene.camera.get_ray(x, y);
 
-                render_buffer[(x, y)] = self.sample_color(ray, scene);
+                render_buffer[(x, y)] = self.sample_color(&ray, scene);
             }
         }
 

@@ -1,4 +1,5 @@
 use nalgebra::{Matrix4, Perspective3, Point3, Vector3};
+use rand::{thread_rng, Rng};
 
 use crate::Ray;
 
@@ -9,7 +10,6 @@ pub struct Camera {
     pub width: u32,
     pub height: u32,
     pub aspect: f64,
-    rays: Vec<Vec<Ray>>,
 }
 
 impl Camera {
@@ -23,34 +23,28 @@ impl Camera {
         );
         let inverse_transform = transform.inverse();
 
-        let mut rays = vec![];
-
-        for y_index in 0..height {
-            let y = -2. * (y_index as f64 / (height - 1) as f64) + 1.;
-            let mut row = Vec::with_capacity(width as usize);
-            for x_index in 0..width {
-                let x = 2. * (x_index as f64 / (width - 1) as f64) - 1.;
-                let origin = Point3::new(x, y, -1.);
-                let direction = Vector3::new(0., 0., 1.);
-                let ray = Ray { origin, direction };
-                row.push(ray.transform(&inverse_transform));
-            }
-            rays.push(row);
-        }
-
         Self {
             transform,
             inverse_transform,
             width,
             height,
             aspect,
-            rays,
         }
     }
 
-    pub fn get_ray(&self, x: u32, y: u32) -> Option<&Ray> {
-        self.rays
-            .get(y as usize)
-            .and_then(|row| row.get(x as usize))
+    pub fn get_ray(&self, x_index: u32, y_index: u32) -> Ray {
+        let mut rng = thread_rng();
+        let y: f64 = y_index as f64 + rng.gen::<f64>() - 0.5;
+        let x: f64 = x_index as f64 + rng.gen::<f64>() - 0.5;
+        let y = -2. * (y / (self.height - 1) as f64) + 1.;
+        let x = 2. * (x / (self.width - 1) as f64) - 1.;
+
+        let origin = Point3::new(x, y, -1.);
+        let ray = Ray {
+            origin,
+            direction: Vector3::new(0., 0., 1.),
+        };
+
+        ray.transform(&self.inverse_transform)
     }
 }
