@@ -5,6 +5,7 @@ mod depth_renderer;
 mod simple_renderer;
 
 pub use backward_renderer::BackwardRenderer;
+pub use depth_renderer::{DepthRenderMode, DepthRenderer};
 pub use simple_renderer::SimpleRenderer;
 
 pub trait Renderer {
