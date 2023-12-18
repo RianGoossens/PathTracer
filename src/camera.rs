@@ -60,7 +60,7 @@ impl FrustrumData {
 }
 
 impl Camera {
-    pub fn new<Ap: Aperture + 'static>(
+    pub fn new<Ap: Aperture + Sync + 'static>(
         width: u32,
         height: u32,
         fov_degrees: f64,

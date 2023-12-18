@@ -1,21 +1,22 @@
-use std::rc::Rc;
-
 use nalgebra::{Matrix4, Projective3};
 
 use crate::{shape::IntersectionInfo, Material, Ray, Shape};
 
-#[derive(Clone)]
 pub struct Object {
-    pub shape: Rc<dyn Shape>,
+    pub shape: Box<dyn Shape>,
     pub transform: Projective3<f64>,
     pub inverse_transform: Matrix4<f64>,
     pub material: Material,
 }
 
 impl Object {
-    pub fn new(shape: Rc<dyn Shape>, transform: Projective3<f64>, material: Material) -> Self {
+    pub fn new<S: Shape + 'static>(
+        shape: S,
+        transform: Projective3<f64>,
+        material: Material,
+    ) -> Self {
         Self {
-            shape,
+            shape: Box::new(shape),
             transform,
             material,
             inverse_transform: *transform.inverse().matrix(),

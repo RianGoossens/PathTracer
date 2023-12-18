@@ -7,7 +7,7 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn new(camera: Camera, objects: &[Object]) -> Self {
+    pub fn new(camera: Camera, objects: Vec<Object>) -> Self {
         let light_indices = objects
             .iter()
             .enumerate()
@@ -21,7 +21,7 @@ impl Scene {
             .collect();
         Self {
             camera,
-            objects: objects.into(),
+            objects,
             light_indices,
         }
     }

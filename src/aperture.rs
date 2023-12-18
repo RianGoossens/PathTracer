@@ -4,7 +4,7 @@ use rand_distr::Normal;
 
 use crate::Ray;
 
-pub trait Aperture {
+pub trait Aperture: Send + Sync {
     fn sample_offset(&self) -> Vector2<f64>;
 
     fn sample_ray(&self, Ray { origin, direction }: &Ray, focal_length: f64) -> Ray {

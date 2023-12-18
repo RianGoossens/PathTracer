@@ -1,4 +1,4 @@
-use std::{rc::Rc, time::Instant};
+use std::time::Instant;
 
 use path_tracer::{
     aperture::RegularPolygonAperture, BackwardRenderer, Camera, Inverted, Material, Object,
@@ -9,16 +9,16 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: u32 = 100;
+const NUM_SAMPLES: u32 = 15000;
 
 fn main() {
     let aperture = RegularPolygonAperture::new(1., 6);
     let camera = Camera::new(300, 300, 70., 1.0, 100.0, aperture, 5.);
 
-    let sphere_shape = Rc::new(Sphere);
+    let sphere_shape = Sphere;
 
     let sphere_a = Object::new(
-        sphere_shape.clone(),
+        sphere_shape,
         na::convert(Similarity3::new(
             Vector3::new(1.5, -0.5, -5.),
             Vector3::zeros(),
@@ -32,7 +32,7 @@ fn main() {
     );
 
     let sphere_b = Object::new(
-        sphere_shape.clone(),
+        sphere_shape,
         na::convert(Similarity3::new(
             Vector3::new(1., 0., -6.),
             Vector3::zeros(),
@@ -46,7 +46,7 @@ fn main() {
     );
 
     let sphere_c = Object::new(
-        sphere_shape.clone(),
+        sphere_shape,
         na::convert(Similarity3::new(
             Vector3::new(0.5, 0.5, -7.),
             Vector3::zeros(),
@@ -60,7 +60,7 @@ fn main() {
     );
 
     let light = Object::new(
-        sphere_shape.clone(),
+        sphere_shape,
         na::convert(Similarity3::new(
             Vector3::new(-1.5, 0., -6.),
             Vector3::zeros(),
@@ -74,7 +74,7 @@ fn main() {
     );
 
     let environment = Object::new(
-        Rc::new(Inverted(Sphere)),
+        Inverted(Sphere),
         na::convert(Similarity3::new(
             Vector3::new(0., 0., -6.),
             Vector3::zeros(),
@@ -87,10 +87,13 @@ fn main() {
         },
     );
 
-    let scene = Scene::new(camera, &[sphere_a, sphere_b, sphere_c, light, environment]);
+    let scene = Scene::new(
+        camera,
+        vec![sphere_a, sphere_b, sphere_c, light, environment],
+    );
 
     let start = Instant::now();
-    let renderer = BackwardRenderer::new(5).iterative(NUM_SAMPLES);
+    let renderer = BackwardRenderer::new(5).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

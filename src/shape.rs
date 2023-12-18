@@ -28,7 +28,7 @@ impl IntersectionInfo {
     }
 }
 
-pub trait Shape {
+pub trait Shape: Send + Sync {
     fn intersection_distances(&self, ray: &Ray) -> Option<f64>;
 
     fn sample_intersection_info(&self, ray: &Ray, distance: f64) -> IntersectionInfo;
