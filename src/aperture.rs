@@ -1,6 +1,6 @@
 use nalgebra::{Vector2, Vector3};
 use rand::{thread_rng, Rng};
-use rand_distr::Normal;
+use rand_distr::{num_traits::Pow, Normal};
 
 use crate::Ray;
 
@@ -63,13 +63,13 @@ impl RegularPolygonAperture {
 impl Aperture for RegularPolygonAperture {
     fn sample_offset(&self) -> Vector2<f64> {
         let mut rng = thread_rng();
-        let section: u8 = (rng.gen::<f32>() * (self.angles - 1) as f32).round() as u8;
+        let section: u8 = rng.gen_range(0..self.angles);
 
         let angle_a = section as f64 * 2. * std::f64::consts::PI / self.angles as f64;
         let angle_b = (section as f64 + 1.) * 2. * std::f64::consts::PI / self.angles as f64;
 
         let weight = rng.gen::<f64>();
-        let distance = rng.gen::<f64>() * self.radius;
+        let distance: f64 = rng.gen::<f64>().sqrt() * self.radius;
 
         let vector_a = Vector2::new(angle_a.cos(), angle_a.sin()) * distance;
         let vector_b = Vector2::new(angle_b.cos(), angle_b.sin()) * distance;
