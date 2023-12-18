@@ -16,15 +16,11 @@ fn main() {
     let focal_distance = 3.5;
     let camera = Camera::new(300, 300, 55., 1.0, 100.0, aperture, focal_distance);
 
-    let sphere_shape = Sphere;
+    let sphere_shape = Sphere::new(1.);
 
     let light = Object::new(
         sphere_shape,
-        na::convert(Similarity3::new(
-            Vector3::new(0., 0., -5.),
-            Vector3::zeros(),
-            0.25,
-        )),
+        Similarity3::new(Vector3::new(0., 0., -5.), Vector3::zeros(), 0.25),
         Material {
             color: Vector3::new(3., 3., 3.),
             emissive: true,

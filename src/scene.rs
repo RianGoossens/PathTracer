@@ -45,10 +45,7 @@ impl Scene {
             );
 
         if let Some((object, intersection)) = query {
-            Some((
-                object,
-                intersection.transform(object.transform.matrix(), &object.inverse_transform),
-            ))
+            Some((object, intersection.transform_similarity(&object.transform)))
         } else {
             None
         }

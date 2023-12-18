@@ -1,6 +1,8 @@
+use std::f64::consts::PI;
+
 use nalgebra as na;
 
-use na::{Matrix4, Point3, Vector3};
+use na::{Point3, Similarity3, Vector3};
 use rand::thread_rng;
 use rand_distr::StandardNormal;
 
@@ -14,9 +16,11 @@ pub struct IntersectionInfo {
 }
 
 impl IntersectionInfo {
-    pub fn transform(&self, matrix: &Matrix4<f64>, inverse: &Matrix4<f64>) -> Self {
+    pub fn transform_similarity(&self, matrix: &Similarity3<f64>) -> Self {
         let new_position = matrix.transform_point(&self.position);
-        let new_normal = inverse
+        let new_normal = matrix
+            .inverse()
+            .to_homogeneous()
             .transpose()
             .transform_vector(&self.normal)
             .normalize();
@@ -35,6 +39,8 @@ pub trait Shape: Send + Sync {
 
     fn sample_emissive_ray(&self) -> Ray;
 
+    fn area(&self) -> f64;
+
     fn intersection(&self, ray: &Ray) -> Option<IntersectionInfo> {
         self.intersection_distances(ray)
             .map(|distance| self.sample_intersection_info(ray, distance))
@@ -46,13 +52,21 @@ pub trait Shape: Send + Sync {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub struct Sphere;
+pub struct Sphere {
+    pub radius: f64,
+}
+
+impl Sphere {
+    pub fn new(radius: f64) -> Self {
+        Self { radius }
+    }
+}
 
 impl Shape for Sphere {
     fn intersection_distances(&self, ray: &Ray) -> Option<f64> {
         let a = ray.direction.dot(&ray.direction);
         let b = 2. * ray.origin.coords.dot(&ray.direction);
-        let c = ray.origin.coords.dot(&ray.origin.coords) - 1.;
+        let c = ray.origin.coords.dot(&ray.origin.coords) - self.radius;
 
         let determinant = b * b - 4. * a * c;
         if determinant < 0. {
@@ -94,6 +108,10 @@ impl Shape for Sphere {
             direction: random_vector,
         }
     }
+
+    fn area(&self) -> f64 {
+        4. * PI * self.radius * self.radius
+    }
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -115,5 +133,9 @@ impl<S: Shape> Shape for Inverted<S> {
         ray.direction *= -1.;
 
         ray
+    }
+
+    fn area(&self) -> f64 {
+        self.0.area()
     }
 }

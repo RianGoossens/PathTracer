@@ -14,15 +14,11 @@ const NUM_SAMPLES: usize = 1000;
 fn main() {
     let camera = Camera::new(300, 300, 55., 1.0, 100.0, PinholeAperture, 0.);
 
-    let sphere_shape = Sphere;
+    let sphere_shape = Sphere::new(1.);
 
     let sphere_a = Object::new(
         sphere_shape,
-        na::convert(Similarity3::new(
-            Vector3::new(1.5, 1., -5.),
-            Vector3::zeros(),
-            1.,
-        )),
+        Similarity3::new(Vector3::new(1.5, 1., -5.), Vector3::zeros(), 1.),
         Material {
             color: Vector3::new(0.8, 0.6, 0.7),
             roughness: 0.1,
@@ -32,11 +28,7 @@ fn main() {
 
     let sphere_b = Object::new(
         sphere_shape,
-        na::convert(Similarity3::new(
-            Vector3::new(-1.5, 1., -5.),
-            Vector3::zeros(),
-            1.,
-        )),
+        Similarity3::new(Vector3::new(-1.5, 1., -5.), Vector3::zeros(), 1.),
         Material {
             color: Vector3::new(0.4, 0.8, 0.3),
             roughness: 0.8,
@@ -45,8 +37,8 @@ fn main() {
     );
 
     let sphere_c = Object::new(
-        Inverted(Sphere),
-        na::convert(Similarity3::new(Vector3::zeros(), Vector3::zeros(), 5.)),
+        Inverted(Sphere::new(1.)),
+        Similarity3::new(Vector3::zeros(), Vector3::zeros(), 5.),
         Material {
             color: Vector3::new(0.6, 0.7, 0.5),
             roughness: 0.9,
@@ -56,11 +48,7 @@ fn main() {
 
     let light = Object::new(
         sphere_shape,
-        na::convert(Similarity3::new(
-            Vector3::new(0., -0.5, -5.),
-            Vector3::zeros(),
-            0.75,
-        )),
+        Similarity3::new(Vector3::new(0., -0.5, -5.), Vector3::zeros(), 0.75),
         Material {
             color: Vector3::new(3., 3., 3.),
             emissive: true,
