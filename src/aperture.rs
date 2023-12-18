@@ -1,6 +1,6 @@
 use nalgebra::{Vector2, Vector3};
 use rand::{thread_rng, Rng};
-use rand_distr::{num_traits::Pow, Normal};
+use rand_distr::Normal;
 
 use crate::Ray;
 

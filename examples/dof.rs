@@ -9,7 +9,7 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: u32 = 15000;
+const NUM_SAMPLES: usize = 1000;
 
 fn main() {
     let aperture = RegularPolygonAperture::new(1., 6);

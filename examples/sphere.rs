@@ -9,7 +9,7 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: u32 = 100;
+const NUM_SAMPLES: usize = 1000;
 
 fn main() {
     let camera = Camera::new(300, 300, 55., 1.0, 100.0, PinholeAperture, 0.);

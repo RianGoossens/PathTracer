@@ -1,3 +1,5 @@
+use std::thread;
+
 use crate::{RenderBuffer, Scene};
 
 mod backward_renderer;
@@ -8,17 +10,17 @@ pub use backward_renderer::BackwardRenderer;
 pub use depth_renderer::{DepthRenderMode, DepthRenderer};
 pub use simple_renderer::SimpleRenderer;
 
-pub trait Renderer {
+pub trait Renderer: Send + Sync {
     fn render(&self, scene: &Scene) -> RenderBuffer;
 
-    fn iterative(self, num_samples: u32) -> IterativeRenderer<Self>
+    fn iterative(self, num_samples: usize) -> IterativeRenderer<Self>
     where
         Self: Sized,
     {
         IterativeRenderer::new(self, num_samples)
     }
 
-    fn parallel(self, num_samples: u32) -> ParallelRenderer<Self>
+    fn parallel(self, num_samples: usize) -> ParallelRenderer<Self>
     where
         Self: Sized,
     {
@@ -27,11 +29,11 @@ pub trait Renderer {
 }
 pub struct IterativeRenderer<R: Renderer> {
     renderer: R,
-    num_samples: u32,
+    num_samples: usize,
 }
 
 impl<R: Renderer> IterativeRenderer<R> {
-    pub fn new(renderer: R, num_samples: u32) -> Self {
+    pub fn new(renderer: R, num_samples: usize) -> Self {
         Self {
             renderer,
             num_samples,
@@ -51,13 +53,15 @@ impl<R: Renderer> Renderer for IterativeRenderer<R> {
         render_buffer
     }
 }
+
+#[derive(Debug, Clone, Copy)]
 pub struct ParallelRenderer<R: Renderer> {
     renderer: R,
-    num_samples: u32,
+    num_samples: usize,
 }
 
 impl<R: Renderer> ParallelRenderer<R> {
-    pub fn new(renderer: R, num_samples: u32) -> Self {
+    pub fn new(renderer: R, num_samples: usize) -> Self {
         Self {
             renderer,
             num_samples,
@@ -65,21 +69,48 @@ impl<R: Renderer> ParallelRenderer<R> {
     }
 }
 
-use rayon::prelude::*;
-impl<R: Renderer + Sync> Renderer for ParallelRenderer<R> {
+impl<R: Renderer> Renderer for ParallelRenderer<R> {
     fn render(&self, scene: &Scene) -> RenderBuffer {
-        let renderer = &self.renderer;
+        let width = scene.camera.width;
+        let height = scene.camera.height;
 
-        let buffers: Vec<_> = (0..self.num_samples)
-            .into_par_iter()
-            .map(move |_| renderer.render(scene))
-            .collect();
+        let mut render_buffer = RenderBuffer::new(width, height);
 
-        let mut render_buffer = RenderBuffer::new(buffers[0].width(), buffers[0].height());
+        let num_threads: usize = thread::available_parallelism().unwrap().into();
 
-        for buffer in buffers {
-            render_buffer += buffer;
-        }
+        let division = self.num_samples / num_threads;
+        let remainder = self.num_samples % num_threads;
+        let samples_per_thread = (0..num_threads)
+            .map(|i| {
+                if i < remainder {
+                    division + 1
+                } else {
+                    division
+                }
+            })
+            .collect::<Vec<_>>();
+
+        thread::scope(|s| {
+            let thread_handles = samples_per_thread
+                .into_iter()
+                .map(|num_samples| {
+                    s.spawn(move || {
+                        let mut render_buffer = self.renderer.render(scene);
+
+                        for _ in 0..num_samples - 1 {
+                            render_buffer += self.renderer.render(scene);
+                        }
+
+                        render_buffer
+                    })
+                })
+                .collect::<Vec<_>>();
+
+            for handle in thread_handles {
+                let thread_render_buffer = handle.join().unwrap();
+                render_buffer += thread_render_buffer;
+            }
+        });
 
         render_buffer /= self.num_samples as f64;
         render_buffer
