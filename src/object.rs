@@ -22,6 +22,11 @@ impl Object {
             inverse_transform: transform.inverse(),
         }
     }
+
+    pub fn sample_emissive_ray(&self) -> Ray {
+        let local_ray = self.shape.sample_emissive_ray();
+        local_ray.transform_similarity(&self.transform)
+    }
 }
 
 impl Object {

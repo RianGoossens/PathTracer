@@ -1,8 +1,8 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::RegularPolygonAperture, BackwardRenderer, Camera, Inverted, Material, Object,
-    Renderer, Scene, Sphere,
+    aperture::RegularPolygonAperture, renderer::BDPTRenderer, BackwardRenderer, Camera, Inverted,
+    Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -62,7 +62,7 @@ fn main() {
         Similarity3::new(Vector3::new(0., 0., -6.), Vector3::zeros(), 6.1),
         Material {
             color: Vector3::new(0.9, 0.9, 0.9),
-            roughness: 0.2,
+            roughness: 1.,
             ..Default::default()
         },
     );
@@ -73,7 +73,9 @@ fn main() {
     );
 
     let start = Instant::now();
-    let renderer = BackwardRenderer::new(5).parallel(NUM_SAMPLES);
+    //let renderer = BackwardRenderer::new(5).parallel(NUM_SAMPLES);
+    //let renderer = BackwardRenderer::new(5);
+    let renderer = BDPTRenderer::new(20); //.parallel(10);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

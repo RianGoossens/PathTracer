@@ -1,15 +1,15 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::PinholeAperture, BackwardRenderer, Camera, Inverted, Material, Object, Renderer,
-    Scene, Sphere,
+    aperture::PinholeAperture, renderer::BDPTRenderer, BackwardRenderer, Camera, Inverted,
+    Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 1000;
+const NUM_SAMPLES: usize = 100;
 
 fn main() {
     let camera = Camera::new(300, 300, 55., 1.0, 100.0, PinholeAperture, 0.);
@@ -59,7 +59,10 @@ fn main() {
     let scene = Scene::new(camera, vec![sphere_a, sphere_b, sphere_c, light]);
 
     let start = Instant::now();
-    let renderer = BackwardRenderer::new(5).parallel(NUM_SAMPLES);
+
+    let renderer = BackwardRenderer::new(5).iterative(NUM_SAMPLES);
+    //let renderer = BackwardRenderer::new(5);
+    //let renderer = BDPTRenderer::new(20).iterative(10); //.parallel(10);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

@@ -21,12 +21,33 @@ pub struct SurfaceInteraction {
 }
 
 impl Material {
+    pub fn can_connect(&self, lhs: Vector3<f64>, rhs: Vector3<f64>, normal: Vector3<f64>) -> bool {
+        let sampled_normal = (lhs + rhs).normalize();
+        let required_roughness = 1. - sampled_normal.dot(&normal);
+        required_roughness < self.roughness
+    }
+
+    pub fn get_color_filter(
+        &self,
+        lhs: Vector3<f64>,
+        rhs: Vector3<f64>,
+        normal: Vector3<f64>,
+    ) -> Option<&Vector3<f64>> {
+        let sampled_normal = (lhs + rhs).normalize();
+        let required_roughness = 1. - sampled_normal.dot(&normal);
+        if required_roughness < self.roughness {
+            Some(&self.color)
+        } else {
+            None
+        }
+    }
+
     pub fn interact(&self, incoming: &Ray, intersection: &IntersectionInfo) -> SurfaceInteraction {
         if self.emissive {
             SurfaceInteraction {
+                intersection: *intersection,
                 color_filter: Vector3::new(1., 1., 1.),
                 emission: self.color,
-                intersection: *intersection,
                 outgoing: None,
             }
         } else {
@@ -49,10 +70,10 @@ impl Material {
             };
 
             SurfaceInteraction {
-                color_filter,
                 intersection: *intersection,
-                outgoing: Some(outgoing),
+                color_filter,
                 emission: Vector3::zeros(),
+                outgoing: Some(outgoing),
             }
         }
     }

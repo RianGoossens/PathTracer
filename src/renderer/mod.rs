@@ -3,10 +3,12 @@ use std::thread;
 use crate::{RenderBuffer, Scene};
 
 mod backward_renderer;
+mod bdpt_renderer;
 mod depth_renderer;
 mod simple_renderer;
 
 pub use backward_renderer::BackwardRenderer;
+pub use bdpt_renderer::BDPTRenderer;
 pub use depth_renderer::{DepthRenderMode, DepthRenderer};
 pub use simple_renderer::SimpleRenderer;
 
