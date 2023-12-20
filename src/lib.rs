@@ -24,6 +24,10 @@ pub fn reflect(incoming: &Vector3<f64>, normal: &Vector3<f64>) -> Vector3<f64> {
     incoming - 2. * normal.dot(incoming) * normal
 }
 
+pub fn find_normal(incoming: &Vector3<f64>, outgoing: &Vector3<f64>) -> Vector3<f64> {
+    ((outgoing - incoming) / 2.).normalize()
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct Hit {
     pub position: Point3<f64>,

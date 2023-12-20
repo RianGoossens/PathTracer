@@ -6,7 +6,7 @@ use na::{Point3, Similarity3, Vector3};
 use rand::thread_rng;
 use rand_distr::StandardNormal;
 
-use crate::Ray;
+use crate::{reflect, Ray};
 
 #[derive(Debug, Clone, Copy)]
 pub struct IntersectionInfo {
@@ -100,13 +100,22 @@ impl Shape for Sphere {
     }
 
     fn sample_emissive_ray(&self) -> Ray {
-        let random_vector =
+        let mut origin: Point3<f64> =
+            Vector3::from_distribution(&StandardNormal, &mut thread_rng())
+                .normalize()
+                .into();
+
+        let normal = origin.coords;
+
+        let mut direction =
             Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
 
-        Ray {
-            origin: random_vector.into(),
-            direction: random_vector,
+        if direction.dot(&normal) < 0. {
+            direction = reflect(&direction, &normal);
         }
+
+        origin += direction * 0.001;
+        Ray { origin, direction }
     }
 
     fn area(&self) -> f64 {

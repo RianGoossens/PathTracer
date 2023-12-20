@@ -25,7 +25,9 @@ impl Object {
 
     pub fn sample_emissive_ray(&self) -> Ray {
         let local_ray = self.shape.sample_emissive_ray();
-        local_ray.transform_similarity(&self.transform)
+        let mut global_ray = local_ray.transform_similarity(&self.transform);
+        global_ray.direction.normalize_mut();
+        global_ray
     }
 }
 

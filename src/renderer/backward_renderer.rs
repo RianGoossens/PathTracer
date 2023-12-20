@@ -20,8 +20,8 @@ impl BackwardRenderer {
             if let Some((object, intersection)) = scene.intersection(&current_ray) {
                 let interaction = object.material.interact(&current_ray, &intersection);
 
+                current_emission += interaction.emission.component_mul(&current_color_filter);
                 current_color_filter.component_mul_assign(&interaction.color_filter);
-                current_emission += interaction.emission;
 
                 if let Some(new_ray) = interaction.outgoing {
                     current_ray = new_ray;
@@ -34,7 +34,7 @@ impl BackwardRenderer {
             }
         }
 
-        current_color_filter.component_mul(&current_emission)
+        current_emission
     }
 }
 

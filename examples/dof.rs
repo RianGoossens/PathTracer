@@ -1,18 +1,18 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::RegularPolygonAperture, renderer::BDPTRenderer, BackwardRenderer, Camera, Inverted,
-    Material, Object, Renderer, Scene, Sphere,
+    aperture::RegularPolygonAperture, renderer::BDPTRenderer, Camera, Inverted, Material, Object,
+    Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 100;
+const NUM_SAMPLES: usize = 2000;
 
 fn main() {
-    let aperture = RegularPolygonAperture::new(1., 6);
+    let aperture = RegularPolygonAperture::new(0.5, 6);
     let camera = Camera::new(300, 300, 70., 1.0, 100.0, aperture, 5.);
 
     let sphere_shape = Sphere::new(1.);
@@ -51,9 +51,19 @@ fn main() {
         sphere_shape,
         Similarity3::new(Vector3::new(-1.5, 0., -6.), Vector3::zeros(), 1.),
         Material {
-            color: Vector3::new(1., 1., 1.) * 6.,
+            color: Vector3::new(1., 1., 1.) * 1.,
             emissive: true,
             roughness: 1.,
+        },
+    );
+
+    let big_sphere = Object::new(
+        Sphere::new(1.),
+        Similarity3::new(Vector3::new(0., -7.5, -6.), Vector3::zeros(), 6.1),
+        Material {
+            color: Vector3::new(0.95, 1., 0.95) * 0.5,
+            roughness: 0.05,
+            ..Default::default()
         },
     );
 
@@ -61,21 +71,19 @@ fn main() {
         Inverted(Sphere::new(1.)),
         Similarity3::new(Vector3::new(0., 0., -6.), Vector3::zeros(), 6.1),
         Material {
-            color: Vector3::new(0.9, 0.9, 0.9),
-            roughness: 1.,
+            color: Vector3::new(1., 1., 1.) * 0.7,
+            roughness: 0.2,
             ..Default::default()
         },
     );
 
     let scene = Scene::new(
         camera,
-        vec![sphere_a, sphere_b, sphere_c, light, environment],
+        vec![sphere_a, sphere_b, sphere_c, big_sphere, environment, light],
     );
 
     let start = Instant::now();
-    //let renderer = BackwardRenderer::new(5).parallel(NUM_SAMPLES);
-    //let renderer = BackwardRenderer::new(5);
-    let renderer = BDPTRenderer::new(20); //.parallel(10);
+    let renderer = BDPTRenderer::new(10).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

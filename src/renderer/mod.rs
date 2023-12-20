@@ -79,6 +79,7 @@ impl<R: Renderer> Renderer for ParallelRenderer<R> {
         let mut render_buffer = RenderBuffer::new(width, height);
 
         let num_threads: usize = thread::available_parallelism().unwrap().into();
+        let num_threads = num_threads.min(self.num_samples);
 
         let division = self.num_samples / num_threads;
         let remainder = self.num_samples % num_threads;
