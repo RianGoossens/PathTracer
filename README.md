@@ -14,6 +14,11 @@ A bi-directional path tracer written in Rust.
 - [X] Anti-aliasing
 - [X] Focal point
 - [X] Aperture shape
-- [ ] Parallel rendering
-- [ ] BDPT
+- [X] Parallel rendering
+- [X] BDPT
+- [ ] Planes
+- [ ] Cubes
+- [ ] Transitive materials
+- [ ] Emissive as parameter
+- [ ] Refraction
 - [ ] Find a good name
