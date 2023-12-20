@@ -1,6 +1,8 @@
-use nalgebra::Similarity3;
+use nalgebra::{Similarity3, Vector3};
+use rand::thread_rng;
+use rand_distr::StandardNormal;
 
-use crate::{shape::IntersectionInfo, Material, Ray, Shape};
+use crate::{reflect, shape::IntersectionInfo, Material, Ray, Shape};
 
 pub struct Object {
     pub shape: Box<dyn Shape>,
@@ -24,9 +26,27 @@ impl Object {
     }
 
     pub fn sample_emissive_ray(&self) -> Ray {
-        let local_ray = self.shape.sample_emissive_ray();
+        let Ray {
+            origin,
+            direction: normal,
+        } = self.shape.sample_random_point();
+
+        let mut direction =
+            Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
+
+        if direction.dot(&normal) < 0. {
+            direction = reflect(&direction, &normal);
+        }
+
+        direction = normal.slerp(&direction, self.material.roughness);
+
+        let local_ray = Ray { origin, direction };
+
         let mut global_ray = local_ray.transform_similarity(&self.transform);
         global_ray.direction.normalize_mut();
+
+        global_ray.origin += global_ray.direction * 0.001;
+
         global_ray
     }
 }

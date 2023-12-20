@@ -31,34 +31,33 @@ impl BDPTRenderer {
         &self,
         ray: &Ray,
         scene: &Scene,
-        initial_light: &Vector3<f64>,
+        material: &Material,
         path_direction: PathDirection,
     ) -> Vec<PathVertex> {
+        let absorption = if material.emissive {
+            Vector3::new(1., 1., 1.)
+        } else {
+            material.color
+        };
+        let emission = if material.emissive {
+            material.color
+        } else {
+            Vector3::zeros()
+        };
         let first_vertex = PathVertex {
             position: ray.origin,
             normal: ray.direction,
             incoming: -ray.direction,
-            material: match path_direction {
-                PathDirection::CameraPath => Material {
-                    color: Vector3::new(1., 1., 1.),
-                    roughness: 0.,
-                    emissive: false,
-                },
-                PathDirection::LightPath => Material {
-                    color: *initial_light,
-                    roughness: 1.,
-                    emissive: true,
-                },
-            },
+            material: *material,
             accumulated_absorption: Vector3::new(1., 1., 1.),
-            accumulated_emission: *initial_light,
+            accumulated_emission: emission,
         };
 
         let mut current_path = vec![first_vertex];
 
         let mut current_ray = *ray;
-        let mut accumulated_emission = *initial_light;
-        let mut accumulated_absorption = Vector3::new(1., 1., 1.);
+        let mut accumulated_emission = emission;
+        let mut accumulated_absorption = absorption;
         for _bounce in 0..self.max_bounces {
             if let Some((object, intersection)) = scene.intersection(&current_ray) {
                 let interaction = object.material.interact(&current_ray, &intersection);
@@ -96,25 +95,34 @@ impl BDPTRenderer {
     }
 
     fn sample_color(&self, ray: &Ray, scene: &Scene) -> Vector3<f64> {
-        let camera_path =
-            self.sample_path(ray, scene, &Vector3::zeros(), PathDirection::CameraPath);
+        let camera_path = self.sample_path(
+            ray,
+            scene,
+            &Material {
+                color: Vector3::new(1., 1., 1.),
+                roughness: 0.,
+                emissive: false,
+            },
+            PathDirection::CameraPath,
+        );
 
         let light = scene.random_light();
 
         let light_ray = light.sample_emissive_ray();
-        let light_path = self.sample_path(
-            &light_ray,
-            scene,
-            &light.material.color,
-            PathDirection::LightPath,
-        );
+        let light_path =
+            self.sample_path(&light_ray, scene, &light.material, PathDirection::LightPath);
         let mut total_importance = 1. / camera_path.len() as f64;
         let mut total_light =
             total_importance * camera_path[camera_path.len() - 1].accumulated_emission;
 
         for (i, vertex_camera) in camera_path[1..].iter().enumerate() {
             for (j, vertex_light) in light_path.iter().enumerate() {
-                let difference = (vertex_light.position - vertex_camera.position).normalize();
+                let difference: na::Matrix<
+                    f64,
+                    na::Const<3>,
+                    na::Const<1>,
+                    na::ArrayStorage<f64, 3, 1>,
+                > = (vertex_light.position - vertex_camera.position).normalize();
                 if vertex_camera.material.can_connect(
                     vertex_camera.incoming,
                     -difference,

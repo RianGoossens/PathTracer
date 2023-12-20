@@ -53,7 +53,7 @@ fn main() {
         Material {
             color: Vector3::new(1., 1., 1.) * 1.,
             emissive: true,
-            ..Default::default()
+            roughness: 0.5,
         },
     );
 
@@ -61,7 +61,7 @@ fn main() {
 
     let start = Instant::now();
 
-    let renderer = BDPTRenderer::new(20).parallel(NUM_SAMPLES);
+    let renderer = BDPTRenderer::new(5).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

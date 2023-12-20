@@ -6,7 +6,7 @@ use na::{Point3, Similarity3, Vector3};
 use rand::thread_rng;
 use rand_distr::StandardNormal;
 
-use crate::{reflect, Ray};
+use crate::Ray;
 
 #[derive(Debug, Clone, Copy)]
 pub struct IntersectionInfo {
@@ -37,7 +37,7 @@ pub trait Shape: Send + Sync {
 
     fn sample_intersection_info(&self, ray: &Ray, distance: f64) -> IntersectionInfo;
 
-    fn sample_emissive_ray(&self) -> Ray;
+    fn sample_random_point(&self) -> Ray;
 
     fn area(&self) -> f64;
 
@@ -99,27 +99,21 @@ impl Shape for Sphere {
         }
     }
 
-    fn sample_emissive_ray(&self) -> Ray {
-        let mut origin: Point3<f64> =
-            Vector3::from_distribution(&StandardNormal, &mut thread_rng())
-                .normalize()
-                .into();
+    fn area(&self) -> f64 {
+        4. * PI * self.radius * self.radius
+    }
+
+    fn sample_random_point(&self) -> Ray {
+        let origin: Point3<f64> = Vector3::from_distribution(&StandardNormal, &mut thread_rng())
+            .normalize()
+            .into();
 
         let normal = origin.coords;
 
-        let mut direction =
-            Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
-
-        if direction.dot(&normal) < 0. {
-            direction = reflect(&direction, &normal);
+        Ray {
+            origin,
+            direction: normal,
         }
-
-        origin += direction * 0.001;
-        Ray { origin, direction }
-    }
-
-    fn area(&self) -> f64 {
-        4. * PI * self.radius * self.radius
     }
 }
 
@@ -137,14 +131,14 @@ impl<S: Shape> Shape for Inverted<S> {
         intersection_info
     }
 
-    fn sample_emissive_ray(&self) -> Ray {
-        let mut ray = self.0.sample_emissive_ray();
+    fn area(&self) -> f64 {
+        self.0.area()
+    }
+
+    fn sample_random_point(&self) -> Ray {
+        let mut ray = self.0.sample_random_point();
         ray.direction *= -1.;
 
         ray
-    }
-
-    fn area(&self) -> f64 {
-        self.0.area()
     }
 }
