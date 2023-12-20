@@ -17,7 +17,7 @@ pub struct SurfaceInteraction {
     pub intersection: IntersectionInfo,
     pub color_filter: Vector3<f64>,
     pub emission: Vector3<f64>,
-    pub outgoing: Option<Ray>,
+    pub outgoing: Ray,
 }
 
 impl Material {
@@ -29,51 +29,42 @@ impl Material {
     }
 
     pub fn interact(&self, incoming: &Ray, intersection: &IntersectionInfo) -> SurfaceInteraction {
-        if false {
-            SurfaceInteraction {
-                intersection: *intersection,
-                color_filter: Vector3::new(1., 1., 1.),
-                emission: self.color,
-                outgoing: None,
-            }
+        let specular_normal = &intersection.normal;
+
+        let color_filter = self.color;
+
+        let specular_outgoing = reflect(&incoming.direction, specular_normal);
+
+        let mut scatter_direction: Vector3<f64> =
+            Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
+        if scatter_direction.dot(specular_normal) < 0. {
+            scatter_direction = reflect(&scatter_direction, specular_normal);
+        }
+
+        let outgoing_direction = specular_outgoing.slerp(&scatter_direction, self.roughness);
+
+        let outgoing = Ray {
+            direction: outgoing_direction,
+            origin: intersection.position + outgoing_direction * 0.001,
+        };
+
+        let color_filter = if self.emissive {
+            Vector3::new(1., 1., 1.)
         } else {
-            let specular_normal = &intersection.normal;
+            color_filter
+        };
 
-            let color_filter = self.color;
+        let emission = if self.emissive {
+            self.color
+        } else {
+            Vector3::zeros()
+        };
 
-            let specular_outgoing = reflect(&incoming.direction, specular_normal);
-
-            let mut scatter_direction: Vector3<f64> =
-                Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
-            if scatter_direction.dot(specular_normal) < 0. {
-                scatter_direction = reflect(&scatter_direction, specular_normal);
-            }
-
-            let outgoing_direction = specular_outgoing.slerp(&scatter_direction, self.roughness);
-
-            let outgoing = Ray {
-                direction: outgoing_direction,
-                origin: intersection.position + outgoing_direction * 0.001,
-            };
-
-            let color_filter = if self.emissive {
-                Vector3::new(1., 1., 1.)
-            } else {
-                color_filter
-            };
-
-            let emission = if self.emissive {
-                self.color
-            } else {
-                Vector3::zeros()
-            };
-
-            SurfaceInteraction {
-                intersection: *intersection,
-                color_filter,
-                emission,
-                outgoing: Some(outgoing),
-            }
+        SurfaceInteraction {
+            intersection: *intersection,
+            color_filter,
+            emission,
+            outgoing,
         }
     }
 }

@@ -16,6 +16,8 @@ A bi-directional path tracer written in Rust.
 - [X] Aperture shape
 - [X] Parallel rendering
 - [X] BDPT
+- [X] EXR support
+- [X] SRGB support
 - [ ] Planes
 - [ ] Cubes
 - [ ] Transitive materials

@@ -1,6 +1,6 @@
 use std::ops::{AddAssign, DivAssign, Index, IndexMut};
 
-use image::{Rgb, RgbImage};
+use image::{Rgb, Rgb32FImage, RgbImage};
 use nalgebra::Vector3;
 #[derive(Debug)]
 pub struct RenderBuffer {
@@ -26,12 +26,37 @@ impl RenderBuffer {
         self.height
     }
 
-    pub fn to_image(&self) -> RgbImage {
+    pub fn map<F: Fn(&Vector3<f64>) -> Vector3<f64>>(&self, f: F) -> Self {
+        Self {
+            buffer: self.buffer.iter().map(&f).collect(),
+            ..*self
+        }
+    }
+
+    pub fn map_float<F: Fn(f64) -> f64>(&self, f: F) -> Self {
+        self.map(|vector| vector.map(&f))
+    }
+
+    pub fn srgb(&self) -> Self {
+        self.map_float(|x| x.clamp(0., 1.).powf(1. / 2.2))
+    }
+
+    pub fn to_image_u8(&self) -> RgbImage {
         RgbImage::from_fn(self.width, self.height, |x, y| {
+            let vector = &self[(x, y)].map(|x| x * 255.);
+            let r = vector.x as u8;
+            let g = vector.y as u8;
+            let b = vector.z as u8;
+            Rgb([r, g, b])
+        })
+    }
+
+    pub fn to_image_f32(&self) -> Rgb32FImage {
+        Rgb32FImage::from_fn(self.width, self.height, |x, y| {
             let vector = &self[(x, y)];
-            let r = (vector.x.clamp(0., 1.) * 255.) as u8;
-            let g = (vector.y.clamp(0., 1.) * 255.) as u8;
-            let b = (vector.z.clamp(0., 1.) * 255.) as u8;
+            let r = vector.x as f32;
+            let g = vector.y as f32;
+            let b = vector.z as f32;
             Rgb([r, g, b])
         })
     }

@@ -39,7 +39,7 @@ fn main() {
 
     println!("Rendering took {:?}", start.elapsed());
 
-    let image = render_buffer.to_image();
+    let image = render_buffer.to_image_u8();
 
     image.save("image.png").expect("Could not save image");
 }

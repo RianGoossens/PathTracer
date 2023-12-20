@@ -3,15 +3,6 @@ use nalgebra as na;
 
 use crate::{Material, Ray, RenderBuffer, Renderer, Scene};
 
-/*
-A vertex has at least:
-- position
-- incoming ray direction (reversed for camera path)
-- material
-- normal
-- absorption color
-- illumination color
-    */
 #[derive(Debug, Clone, Copy)]
 struct PathVertex {
     pub position: Point3<f64>,
@@ -95,11 +86,7 @@ impl BDPTRenderer {
                 };
 
                 current_path.push(vertex);
-                if let Some(new_ray) = interaction.outgoing {
-                    current_ray = new_ray;
-                } else {
-                    break;
-                }
+                current_ray = interaction.outgoing;
             } else {
                 break;
             }
@@ -121,12 +108,12 @@ impl BDPTRenderer {
             &light.material.color,
             PathDirection::LightPath,
         );
-        let mut total_importance = 1.;
+        let mut total_importance = 1. / camera_path.len() as f64;
         let mut total_light =
             total_importance * camera_path[camera_path.len() - 1].accumulated_emission;
 
-        for vertex_camera in &camera_path[1..] {
-            for vertex_light in &light_path {
+        for (i, vertex_camera) in camera_path[1..].iter().enumerate() {
+            for (j, vertex_light) in light_path.iter().enumerate() {
                 let difference = (vertex_light.position - vertex_camera.position).normalize();
                 if vertex_camera.material.can_connect(
                     vertex_camera.incoming,
@@ -143,7 +130,7 @@ impl BDPTRenderer {
                         .component_mul(&vertex_camera.accumulated_absorption)
                         + vertex_camera.accumulated_emission;
 
-                    let importance = 1.;
+                    let importance = 1. / (i + light_path.len() - j) as f64;
                     total_light += current_light * importance;
                     total_importance += importance;
                 }

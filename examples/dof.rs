@@ -51,7 +51,7 @@ fn main() {
         sphere_shape,
         Similarity3::new(Vector3::new(-1.5, 0., -6.), Vector3::zeros(), 1.),
         Material {
-            color: Vector3::new(1., 1., 1.) * 1.,
+            color: Vector3::new(1., 1., 1.),
             emissive: true,
             roughness: 1.,
         },
@@ -61,7 +61,7 @@ fn main() {
         Sphere::new(1.),
         Similarity3::new(Vector3::new(0., -7.5, -6.), Vector3::zeros(), 6.1),
         Material {
-            color: Vector3::new(0.95, 1., 0.95) * 0.5,
+            color: Vector3::new(0.95, 1., 0.95) * 0.3,
             roughness: 0.05,
             ..Default::default()
         },
@@ -71,7 +71,7 @@ fn main() {
         Inverted(Sphere::new(1.)),
         Similarity3::new(Vector3::new(0., 0., -6.), Vector3::zeros(), 6.1),
         Material {
-            color: Vector3::new(1., 1., 1.) * 0.7,
+            color: Vector3::new(1., 1., 1.) * 0.3,
             roughness: 0.2,
             ..Default::default()
         },
@@ -83,12 +83,15 @@ fn main() {
     );
 
     let start = Instant::now();
-    let renderer = BDPTRenderer::new(10).parallel(NUM_SAMPLES);
+    let renderer = BDPTRenderer::new(20).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());
 
-    let image = render_buffer.to_image();
+    let image = render_buffer.srgb().to_image_u8();
 
     image.save("image.png").expect("Could not save image");
+
+    let image = render_buffer.to_image_f32();
+    image.save("image.exr").expect("Could not save exr");
 }
