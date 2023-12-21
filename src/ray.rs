@@ -15,4 +15,8 @@ impl Ray {
             direction: new_direction,
         }
     }
+
+    pub fn sample(&self, t: f64) -> Point3<f64> {
+        self.origin + t * self.direction
+    }
 }

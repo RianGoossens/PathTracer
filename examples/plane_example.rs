@@ -1,10 +1,8 @@
-use std::{f64::consts::PI, time::Instant};
+use std::time::Instant;
 
 use path_tracer::{
-    aperture::{GaussianAperture, PinholeAperture},
-    renderer::{BDPTRenderer, DepthRenderMode, DepthRenderer},
-    shape::Plane,
-    BackwardRenderer, Camera, Material, Object, Renderer, Scene, Sphere,
+    aperture::PinholeAperture, renderer::BDPTRenderer, shape::Plane, Camera, Material, Object,
+    Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;

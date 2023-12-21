@@ -2,8 +2,8 @@ use std::f64::consts::PI;
 
 use nalgebra as na;
 
-use na::{Point3, Similarity3, Vector3};
-use rand::{thread_rng, Rng};
+use na::{Point3, Vector3};
+use rand::thread_rng;
 use rand_distr::StandardNormal;
 
 use crate::{Ray, Shape};
