@@ -62,7 +62,9 @@ impl Scene {
             })
             .reduce(
                 |closest @ (_, closest_intersection), current @ (_, intersection)| {
-                    if intersection.distance < closest_intersection.distance {
+                    if intersection.distance < closest_intersection.distance
+                        && intersection.distance >= 0.
+                    {
                         current
                     } else {
                         closest

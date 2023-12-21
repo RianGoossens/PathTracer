@@ -90,7 +90,7 @@ impl AddAssign<Self> for RenderBuffer {
 
 impl DivAssign<f64> for RenderBuffer {
     fn div_assign(&mut self, rhs: f64) {
-        for vector in self.buffer.iter_mut() {
+        for vector in &mut self.buffer {
             vector.iter_mut().for_each(|x| *x /= rhs);
         }
     }

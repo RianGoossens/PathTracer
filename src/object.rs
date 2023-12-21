@@ -26,10 +26,8 @@ impl Object {
     }
 
     pub fn sample_emissive_ray(&self) -> Ray {
-        let Ray {
-            origin,
-            direction: normal,
-        } = self.shape.sample_random_point();
+        let origin = self.shape.sample_random_point();
+        let normal = self.shape.sample_normal(origin);
 
         let mut direction =
             Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();

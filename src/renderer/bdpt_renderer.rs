@@ -13,6 +13,7 @@ struct PathVertex {
     pub accumulated_emission: Vector3<f64>,
 }
 
+#[derive(Debug, Clone, Copy)]
 enum PathDirection {
     CameraPath,
     LightPath,
