@@ -1,80 +1,66 @@
-use std::time::Instant;
+use std::{f64::consts::TAU, time::Instant};
 
 use path_tracer::{
-    aperture::RegularPolygonAperture, renderer::BDPTRenderer, Camera, Inverted, Material, Object,
-    Renderer, Scene, Sphere,
+    aperture::{PinholeAperture, RegularPolygonAperture},
+    camera::CameraSettings,
+    renderer::BDPTRenderer,
+    BackwardRenderer, Camera, Inverted, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 2000;
+const NUM_SAMPLES: usize = 10;
 
 fn main() {
-    let aperture = RegularPolygonAperture::new(0.5, 6);
-    let camera = Camera::new(300, 300, 70., 1.0, 100.0, aperture, 5.);
+    let aperture = PinholeAperture; // RegularPolygonAperture::new(0.5, 6);
+    let camera_settings = CameraSettings {
+        z: 6.,
+        width: 300,
+        height: 300,
+        fov_degrees: 70.,
+        znear: 1.,
+        ..Default::default()
+    };
+    let camera = Camera::new(camera_settings, aperture, 5.);
 
     let sphere_shape = Sphere::new(1.);
 
     let sphere_a = Object::new(
         sphere_shape,
-        Similarity3::new(Vector3::new(1.5, -0.5, -5.), Vector3::zeros(), 1.),
-        Material {
-            color: Vector3::new(0.8, 0.1, 0.1),
-            roughness: 0.9,
-            ..Default::default()
-        },
+        Similarity3::new(Vector3::new(1.5, -0.5, 1.), Vector3::zeros(), 1.),
+        Material::new(Vector3::new(0.8, 0.1, 0.1), 0.9, false),
     );
 
     let sphere_b = Object::new(
         sphere_shape,
-        Similarity3::new(Vector3::new(1., 0., -6.), Vector3::zeros(), 1.),
-        Material {
-            color: Vector3::new(0.1, 0.8, 0.1),
-            roughness: 0.9,
-            ..Default::default()
-        },
+        Similarity3::new(Vector3::new(1., 0., 0.), Vector3::zeros(), 1.),
+        Material::new(Vector3::new(0.1, 0.8, 0.1), 0.9, false),
     );
 
     let sphere_c = Object::new(
         sphere_shape,
-        Similarity3::new(Vector3::new(0.5, 0.5, -7.), Vector3::zeros(), 1.),
-        Material {
-            color: Vector3::new(0.1, 0.1, 0.8),
-            roughness: 0.9,
-            ..Default::default()
-        },
+        Similarity3::new(Vector3::new(0.5, 0.5, -1.), Vector3::zeros(), 1.),
+        Material::new(Vector3::new(0.1, 0.1, 0.8), 0.9, false),
     );
 
     let light = Object::new(
         sphere_shape,
-        Similarity3::new(Vector3::new(-1.5, 0., -6.), Vector3::zeros(), 1.),
-        Material {
-            color: Vector3::new(1., 1., 1.),
-            emissive: true,
-            roughness: 1.,
-        },
+        Similarity3::new(Vector3::new(-1.5, 0., 0.), Vector3::zeros(), 1.),
+        Material::new(Vector3::new(1., 1., 1.), 1.0, true),
     );
 
     let big_sphere = Object::new(
         Sphere::new(1.),
-        Similarity3::new(Vector3::new(0., -7.5, -6.), Vector3::zeros(), 6.1),
-        Material {
-            color: Vector3::new(0.95, 1., 0.95) * 0.3,
-            roughness: 0.05,
-            ..Default::default()
-        },
+        Similarity3::new(Vector3::new(0., -7.5, 0.), Vector3::zeros(), 6.1),
+        Material::new(Vector3::new(0.95, 1., 0.95) * 0.3, 0.01, false),
     );
 
     let environment = Object::new(
         Inverted(Sphere::new(1.)),
-        Similarity3::new(Vector3::new(0., 0., -6.), Vector3::zeros(), 6.1),
-        Material {
-            color: Vector3::new(1., 1., 1.) * 0.3,
-            roughness: 0.2,
-            ..Default::default()
-        },
+        Similarity3::new(Vector3::new(0., 0., 0.), Vector3::zeros(), 6.1),
+        Material::new(Vector3::new(1., 1., 1.) * 0.3, 1., false),
     );
 
     let scene = Scene::new(
@@ -83,7 +69,7 @@ fn main() {
     );
 
     let start = Instant::now();
-    let renderer = BDPTRenderer::new(20).parallel(NUM_SAMPLES);
+    let renderer = BDPTRenderer::new(10).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

@@ -22,7 +22,7 @@ impl DepthRenderer {
 impl Renderer for DepthRenderer {
     fn render(&self, scene: &crate::Scene) -> RenderBuffer {
         let mut max_depth: f64 = 0.;
-        let mut min_depth: f64 = scene.camera.transform.zfar();
+        let mut min_depth: f64 = scene.camera.perspective.zfar();
 
         let mut buffer = vec![0.; scene.camera.width as usize * scene.camera.height as usize];
         for x in 0..scene.camera.width {

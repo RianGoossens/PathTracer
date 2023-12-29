@@ -14,7 +14,7 @@ const NUM_SAMPLES: usize = 10000;
 fn main() {
     let aperture = RegularPolygonAperture::new(1., 3);
     let focal_distance = 3.5;
-    let camera = Camera::new(300, 300, 55., 1.0, 100.0, aperture, focal_distance);
+    let camera = Camera::new_at_origin(300, 300, 55., 1.0, 100.0, aperture, focal_distance);
 
     let sphere_shape = Sphere::new(1.);
 

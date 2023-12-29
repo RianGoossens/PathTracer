@@ -2,6 +2,7 @@ use nalgebra::{Point3, Vector3};
 
 pub mod aperture;
 pub mod camera;
+pub mod function_approximation;
 pub mod material;
 pub mod object;
 pub mod ray;
@@ -25,7 +26,7 @@ pub fn reflect(incoming: &Vector3<f64>, normal: &Vector3<f64>) -> Vector3<f64> {
 }
 
 pub fn find_normal(incoming: &Vector3<f64>, outgoing: &Vector3<f64>) -> Vector3<f64> {
-    ((outgoing - incoming) / 2.).normalize()
+    (outgoing - incoming).normalize()
 }
 
 #[derive(Clone, Copy, Debug)]
