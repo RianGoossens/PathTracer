@@ -1,4 +1,4 @@
-use std::f64::consts::{E, PI, TAU};
+use std::f64::consts::PI;
 
 use na::Vector3;
 use nalgebra as na;
@@ -18,10 +18,11 @@ pub struct Material {
     pub pdf: ProbabilityDensityFunction,
 }
 
+/*
 fn roughness_pdf(x: f64, roughness: f64) -> f64 {
     let roughness = roughness + 0.0001;
     E.powf(-(x * x) / (roughness * roughness) / 2.) / (roughness * TAU.sqrt())
-}
+}*/
 
 fn ggx(x: f64, roughness: f64) -> f64 {
     let roughness = roughness + 0.00001;

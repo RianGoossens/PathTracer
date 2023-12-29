@@ -1,19 +1,18 @@
 use std::{
-    f64::consts::{PI, TAU},
+    f64::consts::{TAU},
     time::Instant,
 };
 
 use path_tracer::{
-    aperture::{GaussianAperture, PinholeAperture, RegularPolygonAperture},
+    aperture::{PinholeAperture},
     renderer::BDPTRenderer,
-    shape::{Cuboid, Plane},
-    BackwardRenderer, Camera, Inverted, Material, Object, Renderer, Scene, Sphere,
+    shape::{Cuboid}, Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
 use na::{Similarity3, Vector3};
-use rand::thread_rng;
+
 
 const NUM_SAMPLES: usize = 100;
 

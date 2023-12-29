@@ -112,8 +112,8 @@ impl BDPTRenderer {
         let mut total_light =
             total_importance * camera_path[camera_path.len() - 1].accumulated_emission;
 
-        for (i, vertex_camera) in camera_path[1..].iter().enumerate() {
-            for (j, vertex_light) in light_path.iter().enumerate() {
+        for (_i, vertex_camera) in camera_path[1..].iter().enumerate() {
+            for (_j, vertex_light) in light_path.iter().enumerate() {
                 if vertex_camera.normal.dot(&vertex_light.normal) < 0.
                     && scene.is_visible(&vertex_camera.position, &vertex_light.position)
                 {

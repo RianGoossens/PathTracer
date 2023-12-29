@@ -1,7 +1,7 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::GaussianAperture, renderer::BDPTRenderer, BackwardRenderer, Camera, Inverted,
+    aperture::GaussianAperture, renderer::BDPTRenderer, Camera, Inverted,
     Material, Object, Renderer, Scene, Sphere,
 };
 
