@@ -9,7 +9,7 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 10000;
+const NUM_SAMPLES: usize = 1000;
 
 fn main() {
     let aperture = RegularPolygonAperture::new(1., 3);
@@ -21,11 +21,7 @@ fn main() {
     let light = Object::new(
         sphere_shape,
         Similarity3::new(Vector3::new(0., 0., -5.), Vector3::zeros(), 0.25),
-        Material {
-            color: Vector3::new(3., 3., 3.),
-            emissive: true,
-            ..Default::default()
-        },
+        Material::new(Vector3::new(3., 3., 3.), 0., true),
     );
 
     let scene = Scene::new(camera, vec![light]);
