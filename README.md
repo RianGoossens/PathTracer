@@ -20,7 +20,7 @@ A bi-directional path tracer written in Rust.
 - [X] SRGB support
 - [X] Planes
 - [X] Cubes
-- [ ] PDF and SDF approximations for better roughness
+- [X] PDF and SDF approximations for better roughness
 - [ ] Transitive materials
 - [ ] Emissive as parameter
 - [ ] Refraction
