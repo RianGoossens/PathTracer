@@ -79,10 +79,13 @@ impl FunctionApproximation {
         let mut ys = vec![0.; self.ys.len() + 1];
         let mut x = self.start;
         let mut subtotal = 0.;
+        let mut previous_y = 0.;
         for y in &mut ys[1..] {
-            subtotal += self.apply(x).unwrap() * self.step_size;
-            *y = subtotal;
             x += self.step_size;
+            let current_y = self.apply(x).unwrap_or_default();
+            subtotal += (previous_y + current_y) / 2. * self.step_size;
+            *y = subtotal;
+            previous_y = current_y;
         }
 
         Self { ys, ..*self }
@@ -92,7 +95,7 @@ impl FunctionApproximation {
         let ys = self
             .ys
             .iter()
-            .map(|x| x / self.ys[self.ys.len() - 2])
+            .map(|x| x / self.ys[self.ys.len() - 1])
             .collect();
 
         Self { ys, ..*self }
@@ -112,15 +115,19 @@ impl FunctionApproximation {
     }
 
     pub fn apply(&self, x: f64) -> Option<f64> {
-        if x < self.start || x > self.end {
+        if x < self.start {
             None
         } else {
             let center = (x - self.start) / self.step_size;
             let left = center.floor() as usize;
 
-            let right_weight = center - left as f64;
+            if left >= self.ys.len() - 1 {
+                Some(self.ys[self.ys.len() - 1])
+            } else {
+                let right_weight = center - left as f64;
 
-            Some(self.ys[left] * (1. - right_weight) + self.ys[left + 1] * right_weight)
+                Some(self.ys[left] * (1. - right_weight) + self.ys[left + 1] * right_weight)
+            }
         }
     }
 }
@@ -129,27 +136,33 @@ impl FunctionApproximation {
 pub struct ProbabilityDensityFunction {
     pub pdf: FunctionApproximation,
     pub inverse_cdf: FunctionApproximation,
+    max_density: f64,
 }
 
 impl ProbabilityDensityFunction {
     pub fn build<F: Fn(f64) -> f64>(f: F, num_steps: usize) -> Self {
         let unnormalized_pdf = FunctionApproximation::build(&f, 0., 1., num_steps);
         let unnormalized_cdf = unnormalized_pdf.integrate();
-
         let total_area = unnormalized_cdf.apply(1.).unwrap();
 
         let pdf = FunctionApproximation::build(|x| f(x) / total_area, 0., 1., num_steps);
         let cdf = pdf.integrate();
         let inverse_cdf = cdf.invert();
 
-        Self { pdf, inverse_cdf }
+        let max_density = *pdf.ys.iter().max_by(|a, b| a.total_cmp(b)).unwrap();
+
+        Self {
+            pdf,
+            inverse_cdf,
+            max_density,
+        }
     }
 
     pub fn likelihood(&self, value: f64) -> f64 {
         if value < self.pdf.start || value > self.pdf.end {
             0.
         } else {
-            self.pdf.apply(value).unwrap() * self.pdf.step_size
+            self.pdf.apply(value).unwrap() / self.max_density
         }
     }
 

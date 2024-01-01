@@ -10,7 +10,7 @@ use crate::{
     shape::IntersectionInfo, Ray,
 };
 
-//#[derive(Clone)]
+#[derive(Clone)]
 pub struct Material {
     pub color: Vector3<f64>,
     pub roughness: f64,
@@ -25,8 +25,15 @@ fn roughness_pdf(x: f64, roughness: f64) -> f64 {
 }*/
 
 fn ggx(x: f64, roughness: f64) -> f64 {
-    let roughness = roughness + 0.00001;
-    roughness.powi(2) / (PI * (x.powi(2) * (roughness.powi(2) - 1.) + 1.).powi(2))
+    if roughness < 0.001 {
+        if x >= 0.9999 {
+            1.
+        } else {
+            0.
+        }
+    } else {
+        roughness.powi(2) / (PI * (x.powi(2) * (roughness.powi(2) - 1.) + 1.).powi(2))
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -54,24 +61,26 @@ impl Material {
         outgoing: &Vector3<f64>,
         normal: &Vector3<f64>,
     ) -> f64 {
-        if normal.dot(&-incoming) < 0. || normal.dot(outgoing) < 0. {
-            0.
-        } else {
-            let sampled_normal = find_normal(incoming, outgoing);
-            /*if sampled_normal.dot(normal) < 0. {
-                sampled_normal *= -1.;
-            }*/
-            let angle_dot = sampled_normal.dot(normal);
-            self.pdf.likelihood(angle_dot)
+        if incoming.dot(normal) > 0. || outgoing.dot(&-normal) > 0. {
+            return 0.;
         }
+        let sampled_normal = find_normal(incoming, outgoing);
+        /*if sampled_normal.dot(normal) < 0. {
+            sampled_normal *= -1.;
+        }*/
+        let angle_dot = sampled_normal.dot(normal);
+        self.pdf.likelihood(angle_dot)
+        //ggx(angle_dot, self.roughness)
     }
 
     pub fn interact(&self, incoming: &Ray, intersection: &IntersectionInfo) -> SurfaceInteraction {
-        let mut specular_normal = intersection.normal;
+        let mut intersection = *intersection;
 
-        if specular_normal.dot(&-incoming.direction) < 0. {
-            specular_normal = -intersection.normal;
+        if intersection.normal.dot(&-incoming.direction) < 0. {
+            intersection.normal = -intersection.normal;
         }
+
+        let specular_normal = &intersection.normal;
 
         let color_filter = self.color;
 
@@ -80,21 +89,29 @@ impl Material {
         let mut random_direction: Vector3<f64> =
             Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
 
-        if random_direction.dot(&specular_normal) < 0. {
-            random_direction = reflect(&random_direction, &specular_normal);
+        if random_direction.dot(specular_normal) < 0. {
+            random_direction = reflect(&random_direction, specular_normal);
         }
-
-        let angle = random_direction.dot(&specular_normal).acos();
-        let desired_angle = self.pdf.sample(&mut thread_rng()).acos();
+        let angle = random_direction.dot(specular_normal).acos();
+        let desired_angle = if self.roughness == 0. {
+            0.
+        } else {
+            self.pdf.sample(&mut thread_rng()).acos()
+        };
+        //println!("{angle} {desired_angle}");
 
         let scatter_normal = specular_normal.slerp(&random_direction, desired_angle / angle);
+        /*println!(
+            "{} {:?} {:?} {:?}",
+            self.roughness, specular_normal, random_direction, scatter_normal
+        );*/
 
         //let mut outgoing_direction = specular_outgoing.slerp(&random_direction, self.roughness);
         let mut outgoing_direction = reflect(&incoming.direction, &scatter_normal); //
 
         /* */
-        if outgoing_direction.dot(&specular_normal) < 0. {
-            outgoing_direction = reflect(&outgoing_direction, &specular_normal);
+        if outgoing_direction.dot(specular_normal) < 0. {
+            outgoing_direction = reflect(&outgoing_direction, specular_normal);
         }
 
         let outgoing = Ray {
@@ -115,7 +132,7 @@ impl Material {
         };
 
         SurfaceInteraction {
-            intersection: *intersection,
+            intersection,
             color_filter,
             emission,
             outgoing,

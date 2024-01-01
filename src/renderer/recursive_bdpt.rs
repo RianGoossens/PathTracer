@@ -9,52 +9,31 @@ struct PathVertex<'a> {
     pub normal: Vector3<f64>,
     pub incoming: Vector3<f64>,
     pub material: &'a Material,
-    pub accumulated_absorption: Vector3<f64>,
     pub accumulated_emission: Vector3<f64>,
 }
 
-#[derive(Debug, Clone, Copy)]
-enum PathDirection {
-    CameraPath,
-    LightPath,
-}
-
-pub struct BDPTRenderer {
+pub struct RecursiveBDPT {
     max_bounces: u8,
-    camera_material: Material,
 }
 
-impl BDPTRenderer {
+impl RecursiveBDPT {
     pub fn new(max_bounces: u8) -> Self {
-        Self {
-            max_bounces,
-            camera_material: Material::new(Vector3::new(1., 1., 1.), 0., false),
-        }
+        Self { max_bounces }
     }
 
-    fn sample_path<'a>(
+    fn sample_light_path<'a>(
         &'a self,
         ray: &'a Ray,
         scene: &'a Scene,
         material: &'a Material,
-        path_direction: PathDirection,
     ) -> Vec<PathVertex<'a>> {
-        let absorption = if material.emissive {
-            Vector3::new(1., 1., 1.)
-        } else {
-            material.color
-        };
-        let emission = if material.emissive {
-            material.color
-        } else {
-            Vector3::zeros()
-        };
+        let emission = material.color;
+
         let first_vertex = PathVertex {
             position: ray.origin,
             normal: ray.direction,
             incoming: -ray.direction,
             material,
-            accumulated_absorption: Vector3::new(1., 1., 1.),
             accumulated_emission: emission,
         };
 
@@ -62,30 +41,20 @@ impl BDPTRenderer {
 
         let mut current_ray = *ray;
         let mut accumulated_emission = emission;
-        let mut accumulated_absorption = absorption;
         for _bounce in 0..self.max_bounces {
             if let Some((object, intersection)) = scene.intersection(&current_ray) {
                 let interaction = object.material.interact(&current_ray, &intersection);
                 let current_absorption = interaction.color_filter;
                 let current_emission = interaction.emission;
 
-                accumulated_emission = match path_direction {
-                    PathDirection::CameraPath => {
-                        current_emission.component_mul(&accumulated_absorption)
-                            + accumulated_emission
-                    }
-                    PathDirection::LightPath => {
-                        accumulated_emission.component_mul(&current_absorption) + current_emission
-                    }
-                };
-                accumulated_absorption.component_mul_assign(&current_absorption);
+                accumulated_emission =
+                    accumulated_emission.component_mul(&current_absorption) + current_emission;
 
                 let vertex = PathVertex {
                     position: intersection.position,
                     normal: intersection.normal.normalize(),
                     incoming: current_ray.direction,
                     material: &object.material,
-                    accumulated_absorption,
                     accumulated_emission,
                 };
 
@@ -99,53 +68,90 @@ impl BDPTRenderer {
         current_path
     }
 
-    fn sample_color(&self, ray: &Ray, scene: &Scene) -> Vector3<f64> {
-        let camera_path =
-            self.sample_path(ray, scene, &self.camera_material, PathDirection::CameraPath);
+    fn sample_camera_path(
+        &self,
+        ray: &Ray,
+        scene: &Scene,
+        light_path: &[PathVertex],
+        bounce: u8,
+    ) -> Vector3<f64> {
+        if bounce >= self.max_bounces {
+            return Vector3::zeros();
+        }
+        if let Some((object, intersection)) = scene.intersection(ray) {
+            let interaction = object.material.interact(ray, &intersection);
 
-        let light = scene.random_light();
+            let current_position = &intersection.position;
+            let current_normal = &intersection.normal;
 
-        let light_ray = light.sample_emissive_ray();
-        let light_path =
-            self.sample_path(&light_ray, scene, &light.material, PathDirection::LightPath);
-        let mut total_importance = 0.; //1. / camera_path.len() as f64;
-        let mut total_light =
-            total_importance * camera_path[camera_path.len() - 1].accumulated_emission;
+            let mut current_color = Vector3::zeros();
+            let mut total_importance = 0.;
 
-        for (i, vertex_camera) in camera_path[1..].iter().enumerate() {
-            for (j, vertex_light) in light_path.iter().enumerate() {
-                if vertex_camera.normal.dot(&vertex_light.normal) < 0.
-                    && scene.is_visible(&vertex_camera.position, &vertex_light.position)
+            let backward_path_importance = object.material.likelihood(
+                &ray.direction,
+                &interaction.outgoing.direction,
+                &interaction.intersection.normal,
+            );
+            //let backward_path_importance = 1.; //
+
+            let backward_path_color =
+                self.sample_camera_path(&interaction.outgoing, scene, light_path, bounce + 1);
+
+            if backward_path_color.sum() > 0. {
+                current_color += backward_path_color * backward_path_importance;
+                total_importance += backward_path_importance;
+            }
+
+            for vertex_light in light_path {
+                if current_normal.dot(&vertex_light.normal) < 0.
+                    && scene.is_visible(current_position, &vertex_light.position)
                 {
-                    let current_light = vertex_light
-                        .accumulated_emission
-                        .component_mul(&vertex_camera.accumulated_absorption)
-                        + vertex_camera.accumulated_emission;
+                    let light_color = vertex_light.accumulated_emission;
 
-                    let difference = (vertex_light.position - vertex_camera.position).normalize();
-                    //let mut importance = 1. / (i + light_path.len() - j) as f64;
-                    let importance = vertex_camera.material.likelihood(
-                        &vertex_camera.incoming,
-                        &difference,
-                        &vertex_camera.normal,
-                    ) * vertex_light.material.likelihood(
+                    let difference = (vertex_light.position - current_position).normalize();
+
+                    let light_importance = vertex_light.material.likelihood(
                         &vertex_light.incoming,
                         &-difference,
                         &vertex_light.normal,
                     );
-                    total_light += current_light * importance;
-                    total_importance += importance;
+
+                    let ray_importance =
+                        object
+                            .material
+                            .likelihood(&ray.direction, &difference, current_normal);
+
+                    //println!("{light_importance}");
+                    current_color += light_color * ray_importance * light_importance; //ray_importance * light_importance * light_color;
+                    total_importance += ray_importance;
                 }
             }
+            //println!("{total_importance} {current_color}");
+            if total_importance > 0. {
+                current_color /= total_importance;
+            }
+            if object.material.emissive {
+                current_color += object.material.color;
+            } else {
+                current_color.component_mul_assign(&object.material.color);
+            }
+            current_color
+        } else {
+            Vector3::zeros()
         }
-        if total_importance > 0. {
-            total_light /= total_importance;
-        }
-        total_light
+    }
+
+    fn sample_color(&self, ray: &Ray, scene: &Scene) -> Vector3<f64> {
+        let light = scene.random_light();
+
+        let light_ray = light.sample_emissive_ray();
+        let light_path = self.sample_light_path(&light_ray, scene, &light.material);
+
+        self.sample_camera_path(ray, scene, &light_path, 0)
     }
 }
 
-impl Renderer for BDPTRenderer {
+impl Renderer for RecursiveBDPT {
     fn render(&self, scene: &crate::Scene) -> RenderBuffer {
         let width = scene.camera.width;
         let height = scene.camera.height;

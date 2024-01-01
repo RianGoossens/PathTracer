@@ -1,8 +1,10 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::PinholeAperture, camera::CameraSettings, renderer::BDPTRenderer, Camera, Material,
-    Object, Renderer, Scene, Sphere,
+    aperture::PinholeAperture,
+    camera::CameraSettings,
+    renderer::{BDPTRenderer, RecursiveBDPT},
+    Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -38,7 +40,7 @@ fn main() {
     let scene = Scene::new(camera, vec![sphere, light]);
 
     let start = Instant::now();
-    let renderer = BDPTRenderer::new(5).parallel(NUM_SAMPLES);
+    let renderer = RecursiveBDPT::new(5).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

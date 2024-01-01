@@ -1,8 +1,10 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::PinholeAperture, camera::CameraSettings, renderer::BDPTRenderer, Camera, Inverted,
-    Material, Object, Renderer, Scene, Sphere,
+    aperture::{PinholeAperture, RegularPolygonAperture},
+    camera::CameraSettings,
+    renderer::{BDPTRenderer, RecursiveBDPT},
+    BackwardRenderer, Camera, Inverted, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -12,7 +14,7 @@ use na::{Similarity3, Vector3};
 const NUM_SAMPLES: usize = 10;
 
 fn main() {
-    let aperture = PinholeAperture; // RegularPolygonAperture::new(0.5, 6);
+    let aperture = RegularPolygonAperture::new(0.5, 6);
     let camera_settings = CameraSettings {
         z: 6.,
         width: 300,
@@ -67,7 +69,7 @@ fn main() {
     );
 
     let start = Instant::now();
-    let renderer = BDPTRenderer::new(10).parallel(NUM_SAMPLES);
+    let renderer = RecursiveBDPT::new(10).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());
