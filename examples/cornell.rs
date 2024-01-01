@@ -4,8 +4,7 @@ use path_tracer::{
     aperture::RegularPolygonAperture,
     camera::CameraSettings,
     renderer::RecursiveBDPT,
-    shape::{Cuboid, Plane},
-    BackwardRenderer, Camera, Material, Object, Renderer, Scene, Sphere,
+    shape::{Cuboid, Plane}, Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;

@@ -2,7 +2,7 @@ use nalgebra::{Similarity3, Vector3};
 use rand::thread_rng;
 use rand_distr::StandardNormal;
 
-use crate::{reflect, shape::IntersectionInfo, Material, Ray, Shape};
+use crate::{shape::IntersectionInfo, Material, Ray, Shape};
 
 pub struct Object {
     pub shape: Box<dyn Shape>,
