@@ -5,7 +5,7 @@ use path_tracer::{
     camera::CameraSettings,
     renderer::RecursiveBDPT,
     shape::{Cuboid, Plane},
-    Camera, Material, Object, Renderer, Scene, Sphere,
+    BackwardRenderer, Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -96,12 +96,8 @@ fn main() {
     );
 
     let top_light = Object::new(
-        Cuboid::new(1.0, 1.0, 0.1),
-        Similarity3::new(
-            Vector3::new(0., 1., 0.),
-            Vector3::new(-TAU / 4., 0., 0.),
-            0.25,
-        ),
+        Cuboid::new(1.0, 0.05, 1.0),
+        Similarity3::new(Vector3::new(0., 0.975, 0.), Vector3::new(0., 0., 0.), 0.25),
         Material::new(Vector3::new(1.0, 1.0, 0.5), 1., true),
     );
 

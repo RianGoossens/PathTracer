@@ -100,7 +100,7 @@ impl RecursiveBDPT {
             current_color += backward_path_color * backward_path_importance;
             total_importance += backward_path_importance;
 
-            for vertex_light in light_path {
+            for vertex_light in &light_path[1..] {
                 if current_normal.dot(&vertex_light.normal) < 0.
                     && scene.is_visible(current_position, &vertex_light.position)
                 {

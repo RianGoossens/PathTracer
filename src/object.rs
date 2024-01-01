@@ -33,7 +33,7 @@ impl Object {
             Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
 
         if direction.dot(&normal) < 0. {
-            direction = reflect(&direction, &normal);
+            direction = -direction;
         }
 
         direction = normal.slerp(&direction, self.material.roughness);

@@ -6,6 +6,7 @@ use nalgebra as na;
 
 use na::{Point3, Vector3};
 use rand::{thread_rng, Rng};
+use rand_distr::WeightedAliasIndex;
 
 pub struct Cuboid {
     pub width: f64,
@@ -71,7 +72,17 @@ impl Shape for Cuboid {
     fn sample_random_point(&self) -> Point3<f64> {
         let mut rng = thread_rng();
 
-        let direction: u8 = rng.gen_range(0..6);
+        let distribution = WeightedAliasIndex::new(vec![
+            self.width * self.height,
+            self.height * self.depth,
+            self.width * self.depth,
+            self.width * self.height,
+            self.height * self.depth,
+            self.width * self.depth,
+        ])
+        .unwrap();
+
+        let direction: u8 = rng.sample(distribution) as u8;
         let x = rng.gen_range(-0.5..=0.5);
         let y = rng.gen_range(-0.5..=0.5);
         let z = if direction < 3 { -0.5 } else { 0.5 };
