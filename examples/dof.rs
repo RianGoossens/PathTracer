@@ -1,10 +1,8 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::{PinholeAperture, RegularPolygonAperture},
-    camera::CameraSettings,
-    renderer::{BDPTRenderer, RecursiveBDPT},
-    BackwardRenderer, Camera, Inverted, Material, Object, Renderer, Scene, Sphere,
+    aperture::RegularPolygonAperture, camera::CameraSettings, renderer::RecursiveBDPT, Camera,
+    Inverted, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;

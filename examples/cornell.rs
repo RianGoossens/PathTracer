@@ -1,16 +1,16 @@
 use std::{f64::consts::TAU, time::Instant};
 
 use path_tracer::{
-    aperture::{PinholeAperture, RegularPolygonAperture},
+    aperture::RegularPolygonAperture,
     camera::CameraSettings,
-    renderer::{BDPTRenderer, RecursiveBDPT},
+    renderer::RecursiveBDPT,
     shape::{Cuboid, Plane},
-    BackwardRenderer, Camera, Inverted, Material, Object, Renderer, Scene, Sphere,
+    Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
-use na::{Similarity, Similarity3, Vector3};
+use na::{Similarity3, Vector3};
 
 const NUM_SAMPLES: usize = 100;
 const SIZE: u32 = 300;

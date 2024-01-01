@@ -97,10 +97,8 @@ impl RecursiveBDPT {
             let backward_path_color =
                 self.sample_camera_path(&interaction.outgoing, scene, light_path, bounce + 1);
 
-            if backward_path_color.sum() > 0. {
-                current_color += backward_path_color * backward_path_importance;
-                total_importance += backward_path_importance;
-            }
+            current_color += backward_path_color * backward_path_importance;
+            total_importance += backward_path_importance;
 
             for vertex_light in light_path {
                 if current_normal.dot(&vertex_light.normal) < 0.

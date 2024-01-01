@@ -3,7 +3,7 @@ use std::time::Instant;
 use path_tracer::{
     aperture::PinholeAperture,
     camera::CameraSettings,
-    renderer::{BDPTRenderer, RecursiveBDPT},
+    renderer::{RecursiveBDPT},
     Camera, Material, Object, Renderer, Scene, Sphere,
 };
 

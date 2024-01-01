@@ -1,15 +1,10 @@
-use std::{
-    f64::consts::{E, PI, TAU},
-    mem::size_of,
-    time::Instant,
-};
+use std::f64::consts::PI;
 
 use path_tracer::function_approximation::FunctionApproximation;
-use rand::{thread_rng, Rng};
 
-fn old_pdf(x: f64, roughness: f64) -> f64 {
+/*fn old_pdf(x: f64, roughness: f64) -> f64 {
     E.powf(-(x * x) / (roughness * roughness) / 2.) / (roughness * TAU.sqrt())
-}
+}*/
 
 fn ggx(x: f64, roughness: f64) -> f64 {
     let roughness = roughness + 0.00001;
@@ -42,7 +37,7 @@ fn main() {
     println!("{duration:?} {}", total / AMOUNT as f64);
     */
 
-    let integration = approximation.integrate().normalize().invert();
+    let _integration = approximation.integrate().normalize().invert();
     for i in 0..11 {
         let x = i as f64 / 10.;
         println!("{}", approximation.apply(x).unwrap())

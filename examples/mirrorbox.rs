@@ -1,11 +1,10 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::{GaussianAperture, PinholeAperture},
+    aperture::{GaussianAperture},
     camera::CameraSettings,
-    renderer::{BDPTRenderer, RecursiveBDPT},
-    shape::Cuboid,
-    BackwardRenderer, Camera, Inverted, Material, Object, Renderer, Scene, Sphere,
+    renderer::{RecursiveBDPT},
+    shape::Cuboid, Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
