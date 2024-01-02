@@ -29,15 +29,7 @@ impl RecursiveBDPT {
     ) -> Vec<PathVertex<'a>> {
         let emission = material.color;
 
-        let first_vertex = PathVertex {
-            position: ray.origin,
-            normal: ray.direction,
-            incoming: -ray.direction,
-            material,
-            accumulated_emission: emission,
-        };
-
-        let mut current_path = vec![first_vertex];
+        let mut current_path = vec![];
 
         let mut current_ray = *ray;
         let mut accumulated_emission = emission;
@@ -100,7 +92,7 @@ impl RecursiveBDPT {
             current_color += backward_path_color * backward_path_importance;
             total_importance += backward_path_importance;
 
-            for vertex_light in &light_path[1..] {
+            for vertex_light in light_path {
                 if current_normal.dot(&vertex_light.normal) < 0.
                     && scene.is_visible(current_position, &vertex_light.position)
                 {

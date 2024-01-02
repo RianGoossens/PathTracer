@@ -4,14 +4,15 @@ use path_tracer::{
     aperture::RegularPolygonAperture,
     camera::CameraSettings,
     renderer::RecursiveBDPT,
-    shape::{Cuboid, Plane}, Camera, Material, Object, Renderer, Scene, Sphere,
+    shape::{Cuboid, Plane},
+    Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 100;
+const NUM_SAMPLES: usize = 10;
 const SIZE: u32 = 300;
 
 fn main() {
