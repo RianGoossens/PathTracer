@@ -39,16 +39,9 @@ impl BDPTRenderer {
         material: &'a Material,
         path_direction: PathDirection,
     ) -> Vec<PathVertex<'a>> {
-        let absorption = if material.emissive {
-            Vector3::new(1., 1., 1.)
-        } else {
-            material.color
-        };
-        let emission = if material.emissive {
-            material.color
-        } else {
-            Vector3::zeros()
-        };
+        let absorption = material.absorption_color();
+        let emission = material.emission_color();
+
         let first_vertex = PathVertex {
             position: ray.origin,
             normal: ray.direction,
@@ -90,7 +83,11 @@ impl BDPTRenderer {
                 };
 
                 current_path.push(vertex);
-                current_ray = interaction.outgoing;
+                if let Some(outgoing) = interaction.outgoing {
+                    current_ray = outgoing;
+                } else {
+                    break;
+                }
             } else {
                 break;
             }

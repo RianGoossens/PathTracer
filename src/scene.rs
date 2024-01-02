@@ -2,7 +2,7 @@ use nalgebra::Point3;
 use rand::{thread_rng, Rng};
 use rand_distr::WeightedAliasIndex;
 
-use crate::{shape::IntersectionInfo, Camera, Object, Ray};
+use crate::{shape::IntersectionInfo, Camera, Material, Object, Ray};
 
 pub struct Scene {
     pub camera: Camera,
@@ -17,7 +17,7 @@ impl Scene {
             .iter()
             .enumerate()
             .filter_map(|(i, object)| {
-                if object.material.emissive {
+                if matches!(object.material, Material::Emissive { .. }) {
                     Some(i)
                 } else {
                     None

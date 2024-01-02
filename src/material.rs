@@ -11,11 +11,23 @@ use crate::{
 };
 
 #[derive(Clone)]
-pub struct Material {
+pub struct OldMaterial {
     pub color: Vector3<f64>,
     pub roughness: f64,
     pub emissive: bool,
     pub pdf: ProbabilityDensityFunction,
+}
+
+#[derive(Clone)]
+pub enum Material {
+    Reflective {
+        color: Vector3<f64>,
+        roughness: f64,
+        pdf: ProbabilityDensityFunction,
+    },
+    Emissive {
+        color: Vector3<f64>,
+    },
 }
 
 /*
@@ -41,17 +53,42 @@ pub struct SurfaceInteraction {
     pub intersection: IntersectionInfo,
     pub color_filter: Vector3<f64>,
     pub emission: Vector3<f64>,
-    pub outgoing: Ray,
+    pub outgoing: Option<Ray>,
 }
 
 impl Material {
-    pub fn new(color: Vector3<f64>, roughness: f64, emissive: bool) -> Self {
+    pub fn new_reflective(color: Vector3<f64>, roughness: f64) -> Self {
         let pdf = ProbabilityDensityFunction::build(|x| ggx(x, roughness), 1000);
-        Self {
+        Self::Reflective {
             color,
             roughness,
-            emissive,
             pdf,
+        }
+    }
+
+    pub fn new_emissive(color: Vector3<f64>) -> Self {
+        Self::Emissive { color }
+    }
+
+    pub fn new(color: Vector3<f64>, roughness: f64, emissive: bool) -> Self {
+        if emissive {
+            Self::new_emissive(color)
+        } else {
+            Self::new_reflective(color, roughness)
+        }
+    }
+
+    pub fn emission_color(&self) -> Vector3<f64> {
+        match self {
+            Material::Emissive { color } => *color,
+            _ => Vector3::zeros(),
+        }
+    }
+
+    pub fn absorption_color(&self) -> Vector3<f64> {
+        match self {
+            Material::Reflective { color, .. } => *color,
+            _ => Vector3::new(1., 1., 1.),
         }
     }
 
@@ -64,12 +101,17 @@ impl Material {
         if incoming.dot(normal) > 0. || outgoing.dot(&-normal) > 0. {
             return 0.;
         }
-        let sampled_normal = find_normal(incoming, outgoing);
-        /*if sampled_normal.dot(normal) < 0. {
-            sampled_normal *= -1.;
-        }*/
-        let angle_dot = sampled_normal.dot(normal);
-        self.pdf.likelihood(angle_dot)
+        match self {
+            Material::Reflective { pdf, .. } => {
+                let sampled_normal = find_normal(incoming, outgoing);
+                /*if sampled_normal.dot(normal) < 0. {
+                    sampled_normal *= -1.;
+                }*/
+                let angle_dot = sampled_normal.dot(normal);
+                pdf.likelihood(angle_dot)
+            }
+            Material::Emissive { .. } => 1.,
+        }
         //ggx(angle_dot, self.roughness)
     }
 
@@ -80,62 +122,63 @@ impl Material {
             intersection.normal = -intersection.normal;
         }
 
-        let specular_normal = &intersection.normal;
+        match self {
+            Material::Reflective {
+                color,
+                roughness,
+                pdf,
+            } => {
+                let specular_normal = &intersection.normal;
 
-        let color_filter = self.color;
+                //let specular_outgoing = reflect(&incoming.direction, &specular_normal);
 
-        //let specular_outgoing = reflect(&incoming.direction, &specular_normal);
+                let mut random_direction: Vector3<f64> =
+                    Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
 
-        let mut random_direction: Vector3<f64> =
-            Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
+                if random_direction.dot(specular_normal) < 0. {
+                    random_direction = reflect(&random_direction, specular_normal);
+                }
+                let angle = random_direction.dot(specular_normal).acos();
+                let desired_angle = if *roughness == 0. {
+                    0.
+                } else {
+                    pdf.sample(&mut thread_rng()).acos()
+                };
+                //println!("{angle} {desired_angle}");
 
-        if random_direction.dot(specular_normal) < 0. {
-            random_direction = reflect(&random_direction, specular_normal);
-        }
-        let angle = random_direction.dot(specular_normal).acos();
-        let desired_angle = if self.roughness == 0. {
-            0.
-        } else {
-            self.pdf.sample(&mut thread_rng()).acos()
-        };
-        //println!("{angle} {desired_angle}");
+                let scatter_normal =
+                    specular_normal.slerp(&random_direction, desired_angle / angle);
+                /*println!(
+                    "{} {:?} {:?} {:?}",
+                    self.roughness, specular_normal, random_direction, scatter_normal
+                );*/
 
-        let scatter_normal = specular_normal.slerp(&random_direction, desired_angle / angle);
-        /*println!(
-            "{} {:?} {:?} {:?}",
-            self.roughness, specular_normal, random_direction, scatter_normal
-        );*/
+                //let mut outgoing_direction = specular_outgoing.slerp(&random_direction, self.roughness);
+                let mut outgoing_direction = reflect(&incoming.direction, &scatter_normal); //
 
-        //let mut outgoing_direction = specular_outgoing.slerp(&random_direction, self.roughness);
-        let mut outgoing_direction = reflect(&incoming.direction, &scatter_normal); //
+                /* */
+                if outgoing_direction.dot(specular_normal) < 0. {
+                    outgoing_direction = reflect(&outgoing_direction, specular_normal);
+                }
 
-        /* */
-        if outgoing_direction.dot(specular_normal) < 0. {
-            outgoing_direction = reflect(&outgoing_direction, specular_normal);
-        }
+                let outgoing = Ray {
+                    direction: outgoing_direction,
+                    origin: intersection.position + outgoing_direction * 0.001,
+                };
 
-        let outgoing = Ray {
-            direction: outgoing_direction,
-            origin: intersection.position + outgoing_direction * 0.001,
-        };
-
-        let color_filter = if self.emissive {
-            Vector3::new(1., 1., 1.)
-        } else {
-            color_filter
-        };
-
-        let emission = if self.emissive {
-            self.color
-        } else {
-            Vector3::zeros()
-        };
-
-        SurfaceInteraction {
-            intersection,
-            color_filter,
-            emission,
-            outgoing,
+                SurfaceInteraction {
+                    intersection,
+                    color_filter: *color,
+                    emission: Vector3::zeros(),
+                    outgoing: Some(outgoing),
+                }
+            }
+            Material::Emissive { color } => SurfaceInteraction {
+                intersection,
+                color_filter: Vector3::new(1., 1., 1.),
+                emission: *color,
+                outgoing: None,
+            },
         }
     }
 }

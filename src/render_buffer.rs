@@ -2,7 +2,7 @@ use std::ops::{AddAssign, DivAssign, Index, IndexMut};
 
 use image::{Rgb, Rgb32FImage, RgbImage};
 use nalgebra::Vector3;
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RenderBuffer {
     width: u32,
     height: u32,
@@ -39,6 +39,33 @@ impl RenderBuffer {
 
     pub fn srgb(&self) -> Self {
         self.map_float(|x| x.clamp(0., 1.).powf(1. / 2.2))
+    }
+
+    pub fn median_filter(&self, kernel_size: usize) -> Self {
+        let mut result = self.clone();
+        let kernel_size = kernel_size as i32;
+        for row in 0..self.height as i32 {
+            for col in 0..self.width as i32 {
+                let mut colors = vec![];
+                for row_offset in -kernel_size / 2..=kernel_size / 2 {
+                    let row_index = row + row_offset;
+                    if row_index >= 0 && row_index < self.height as i32 {
+                        for col_offset in -kernel_size / 2..=kernel_size / 2 {
+                            let col_index = col + col_offset;
+                            if col_index >= 0 && col_index < self.width as i32 {
+                                let color = self[(row_index as u32, col_index as u32)];
+                                colors.push(color);
+                            }
+                        }
+                    }
+                }
+                colors.sort_by(|a, b| a.sum().total_cmp(&b.sum()));
+                let color = colors[colors.len() / 2];
+                result[(row as u32, col as u32)] = color;
+            }
+        }
+
+        result
     }
 
     pub fn to_image_u8(&self) -> RgbImage {

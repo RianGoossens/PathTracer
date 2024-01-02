@@ -27,7 +27,7 @@ impl RecursiveBDPT {
         scene: &'a Scene,
         material: &'a Material,
     ) -> Vec<PathVertex<'a>> {
-        let emission = material.color;
+        let emission = material.emission_color();
 
         let mut current_path = vec![];
 
@@ -51,7 +51,11 @@ impl RecursiveBDPT {
                 };
 
                 current_path.push(vertex);
-                current_ray = interaction.outgoing;
+                if let Some(outgoing) = interaction.outgoing {
+                    current_ray = outgoing;
+                } else {
+                    break;
+                }
             } else {
                 break;
             }
@@ -79,18 +83,20 @@ impl RecursiveBDPT {
             let mut current_color = Vector3::zeros();
             let mut total_importance = 0.;
 
-            let backward_path_importance = object.material.likelihood(
-                &ray.direction,
-                &interaction.outgoing.direction,
-                &interaction.intersection.normal,
-            );
-            //let backward_path_importance = 1.; //
+            if let Some(outgoing) = &interaction.outgoing {
+                let backward_path_importance = object.material.likelihood(
+                    &ray.direction,
+                    &outgoing.direction,
+                    &interaction.intersection.normal,
+                );
+                //let backward_path_importance = 1.; //
 
-            let backward_path_color =
-                self.sample_camera_path(&interaction.outgoing, scene, light_path, bounce + 1);
+                let backward_path_color =
+                    self.sample_camera_path(outgoing, scene, light_path, bounce + 1);
 
-            current_color += backward_path_color * backward_path_importance;
-            total_importance += backward_path_importance;
+                current_color += backward_path_color * backward_path_importance;
+                total_importance += backward_path_importance;
+            }
 
             for vertex_light in light_path {
                 if current_normal.dot(&vertex_light.normal) < 0.
@@ -120,11 +126,8 @@ impl RecursiveBDPT {
             if total_importance > 0. {
                 current_color /= total_importance;
             }
-            if object.material.emissive {
-                current_color += object.material.color;
-            } else {
-                current_color.component_mul_assign(&object.material.color);
-            }
+            current_color.component_mul_assign(&object.material.absorption_color());
+            current_color += object.material.emission_color();
             current_color
         } else {
             Vector3::zeros()

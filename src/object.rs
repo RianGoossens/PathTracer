@@ -36,8 +36,6 @@ impl Object {
             direction = -direction;
         }
 
-        direction = normal.slerp(&direction, self.material.roughness);
-
         let local_ray = Ray { origin, direction };
 
         let mut global_ray = local_ray.transform_similarity(&self.transform);

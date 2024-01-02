@@ -23,7 +23,11 @@ impl BackwardRenderer {
                 current_emission += interaction.emission.component_mul(&current_color_filter);
                 current_color_filter.component_mul_assign(&interaction.color_filter);
 
-                current_ray = interaction.outgoing;
+                if let Some(outgoing) = interaction.outgoing {
+                    current_ray = outgoing;
+                } else {
+                    break;
+                }
             } else {
                 current_color_filter *= 0.;
                 break;
