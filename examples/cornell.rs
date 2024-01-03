@@ -3,9 +3,9 @@ use std::{f64::consts::TAU, time::Instant};
 use path_tracer::{
     aperture::RegularPolygonAperture,
     camera::CameraSettings,
-    renderer::{BDPTRenderer, RecursiveBDPT},
+    renderer::RecursiveBDPT,
     shape::{Cuboid, Plane},
-    BackwardRenderer, Camera, Material, Object, Renderer, Scene, Sphere,
+    Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
