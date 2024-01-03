@@ -52,6 +52,7 @@ impl Scene {
         }
     }
 
+    #[inline]
     pub fn intersection(&self, ray: &Ray) -> Option<(&Object, IntersectionInfo)> {
         let query = self
             .objects

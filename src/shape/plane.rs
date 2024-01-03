@@ -1,10 +1,7 @@
-
-
 use nalgebra as na;
 
 use na::{Point3, Vector3};
 use rand::{thread_rng, Rng};
-
 
 use crate::{Ray, Shape};
 
@@ -55,10 +52,15 @@ impl Shape for Plane {
     }
 
     fn area(&self) -> f64 {
-        self.width * self.height
+        2. * self.width * self.height
     }
 
     fn sample_normal(&self, _position: Point3<f64>) -> Vector3<f64> {
-        Vector3::new(0., 0., 1.)
+        let mut rng = thread_rng();
+        if rng.gen_bool(0.5) {
+            Vector3::new(0., 0., 1.)
+        } else {
+            Vector3::new(0., 0., -1.)
+        }
     }
 }

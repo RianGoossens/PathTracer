@@ -39,12 +39,12 @@ impl Shape for Cuboid {
         for t in ts {
             if t >= 0. && t < result {
                 let position = ray.sample(t);
-                if -self.width / 2. <= position.x
-                    && position.x <= self.width / 2.
-                    && -self.height / 2. <= position.y
-                    && position.y <= self.height / 2.
-                    && -self.depth / 2. <= position.z
-                    && position.z <= self.depth / 2.
+                if -self.width / 2. <= position.x + 0.001
+                    && position.x <= self.width / 2. + 0.001
+                    && -self.height / 2. <= position.y + 0.001
+                    && position.y <= self.height / 2. + 0.001
+                    && -self.depth / 2. <= position.z + 0.001
+                    && position.z <= self.depth / 2. + 0.001
                 {
                     result = t;
                 }
@@ -54,6 +54,7 @@ impl Shape for Cuboid {
         if result.is_finite() {
             Some(result)
         } else {
+            //println!("{ts:?} {ray:?}");
             None
         }
     }
@@ -73,12 +74,13 @@ impl Shape for Cuboid {
         let mut rng = thread_rng();
 
         let distribution = WeightedAliasIndex::new(vec![
-            self.width * self.height,
-            self.height * self.depth,
-            self.width * self.depth,
-            self.width * self.height,
-            self.height * self.depth,
-            self.width * self.depth,
+            1., 1., 1., 1., 1.,
+            1., // self.width * self.height,
+               // self.height * self.depth,
+               // self.width * self.depth,
+               // self.width * self.height,
+               // self.height * self.depth,
+               // self.width * self.depth,
         ])
         .unwrap();
 

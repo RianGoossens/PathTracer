@@ -23,6 +23,7 @@ pub enum Material {
     Reflective {
         color: Vector3<f64>,
         roughness: f64,
+        transmission: f64,
         pdf: ProbabilityDensityFunction,
     },
     Emissive {
@@ -57,11 +58,12 @@ pub struct SurfaceInteraction {
 }
 
 impl Material {
-    pub fn new_reflective(color: Vector3<f64>, roughness: f64) -> Self {
+    pub fn new_reflective(color: Vector3<f64>, roughness: f64, transmission: f64) -> Self {
         let pdf = ProbabilityDensityFunction::build(|x| ggx(x, roughness), 1000);
         Self::Reflective {
             color,
             roughness,
+            transmission,
             pdf,
         }
     }
@@ -74,7 +76,7 @@ impl Material {
         if emissive {
             Self::new_emissive(color)
         } else {
-            Self::new_reflective(color, roughness)
+            Self::new_reflective(color, roughness, 0.)
         }
     }
 
@@ -98,17 +100,18 @@ impl Material {
         outgoing: &Vector3<f64>,
         normal: &Vector3<f64>,
     ) -> f64 {
-        if incoming.dot(normal) > 0. || outgoing.dot(&-normal) > 0. {
-            return 0.;
-        }
         match self {
             Material::Reflective { pdf, .. } => {
-                let sampled_normal = find_normal(incoming, outgoing);
-                /*if sampled_normal.dot(normal) < 0. {
-                    sampled_normal *= -1.;
-                }*/
-                let angle_dot = sampled_normal.dot(normal);
-                pdf.likelihood(angle_dot)
+                if (normal.dot(incoming) > 0.) != (normal.dot(outgoing) < 0.) {
+                    0.
+                } else {
+                    let sampled_normal = find_normal(incoming, outgoing);
+                    /*if sampled_normal.dot(normal) < 0. {
+                        sampled_normal *= -1.;
+                    }*/
+                    let angle_dot = sampled_normal.dot(normal);
+                    pdf.likelihood(angle_dot)
+                }
             }
             Material::Emissive { .. } => 1.,
         }
@@ -118,7 +121,7 @@ impl Material {
     pub fn interact(&self, incoming: &Ray, intersection: &IntersectionInfo) -> SurfaceInteraction {
         let mut intersection = *intersection;
 
-        if intersection.normal.dot(&-incoming.direction) < 0. {
+        if intersection.normal.dot(&incoming.direction) > 0. {
             intersection.normal = -intersection.normal;
         }
 
@@ -127,18 +130,19 @@ impl Material {
                 color,
                 roughness,
                 pdf,
+                ..
             } => {
-                let specular_normal = &intersection.normal;
+                let specular_normal = intersection.normal;
 
                 //let specular_outgoing = reflect(&incoming.direction, &specular_normal);
 
                 let mut random_direction: Vector3<f64> =
                     Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
 
-                if random_direction.dot(specular_normal) < 0. {
-                    random_direction = reflect(&random_direction, specular_normal);
+                if random_direction.dot(&specular_normal) < 0. {
+                    random_direction = reflect(&random_direction, &specular_normal);
                 }
-                let angle = random_direction.dot(specular_normal).acos();
+                let angle = random_direction.dot(&specular_normal).acos();
                 let desired_angle = if *roughness == 0. {
                     0.
                 } else {
@@ -157,8 +161,8 @@ impl Material {
                 let mut outgoing_direction = reflect(&incoming.direction, &scatter_normal); //
 
                 /* */
-                if outgoing_direction.dot(specular_normal) < 0. {
-                    outgoing_direction = reflect(&outgoing_direction, specular_normal);
+                if outgoing_direction.dot(&specular_normal) < 0. {
+                    outgoing_direction = reflect(&outgoing_direction, &specular_normal);
                 }
 
                 let outgoing = Ray {

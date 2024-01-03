@@ -96,30 +96,31 @@ impl RecursiveBDPT {
 
                 current_color += backward_path_color * backward_path_importance;
                 total_importance += backward_path_importance;
-            }
 
-            for vertex_light in light_path {
-                if current_normal.dot(&vertex_light.normal) < 0.
-                    && scene.is_visible(current_position, &vertex_light.position)
-                {
-                    let light_color = vertex_light.accumulated_emission;
+                for vertex_light in light_path {
+                    if
+                    /*current_normal.dot(&vertex_light.normal) < 0.
+                    &&*/
+                    scene.is_visible(current_position, &vertex_light.position) {
+                        let light_color = vertex_light.accumulated_emission;
 
-                    let difference = (vertex_light.position - current_position).normalize();
+                        let difference = (vertex_light.position - current_position).normalize();
 
-                    let light_importance = vertex_light.material.likelihood(
-                        &vertex_light.incoming,
-                        &-difference,
-                        &vertex_light.normal,
-                    );
+                        let ray_importance =
+                            object
+                                .material
+                                .likelihood(&ray.direction, &difference, current_normal);
 
-                    let ray_importance =
-                        object
-                            .material
-                            .likelihood(&ray.direction, &difference, current_normal);
-
-                    //println!("{light_importance}");
-                    current_color += light_color * ray_importance * light_importance; //ray_importance * light_importance * light_color;
-                    total_importance += ray_importance;
+                        if ray_importance > 0. {
+                            let light_importance = vertex_light.material.likelihood(
+                                &vertex_light.incoming,
+                                &-difference,
+                                &vertex_light.normal,
+                            );
+                            current_color += light_color * ray_importance * light_importance; //ray_importance * light_importance * light_color;
+                            total_importance += ray_importance;
+                        }
+                    }
                 }
             }
             //println!("{total_importance} {current_color}");
