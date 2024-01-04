@@ -74,13 +74,12 @@ impl Shape for Cuboid {
         let mut rng = thread_rng();
 
         let distribution = WeightedAliasIndex::new(vec![
-            1., 1., 1., 1., 1.,
-            1., // self.width * self.height,
-               // self.height * self.depth,
-               // self.width * self.depth,
-               // self.width * self.height,
-               // self.height * self.depth,
-               // self.width * self.depth,
+            self.width * self.height,
+            self.height * self.depth,
+            self.width * self.depth,
+            self.width * self.height,
+            self.height * self.depth,
+            self.width * self.depth,
         ])
         .unwrap();
 

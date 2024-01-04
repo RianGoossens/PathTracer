@@ -9,7 +9,7 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 10;
+const NUM_SAMPLES: usize = 100;
 
 fn main() {
     let aperture = RegularPolygonAperture::new(0.5, 6);
@@ -45,14 +45,14 @@ fn main() {
 
     let light = Object::new(
         sphere_shape,
-        Similarity3::new(Vector3::new(-1.5, 0., 0.), Vector3::zeros(), 1.),
+        Similarity3::new(Vector3::new(-1.5, 0., 0.), Vector3::zeros(), 0.5),
         Material::new(Vector3::new(1., 1., 1.), 1.0, true),
     );
 
     let big_sphere = Object::new(
         Sphere::new(1.),
         Similarity3::new(Vector3::new(0., -7.5, 0.), Vector3::zeros(), 6.1),
-        Material::new(Vector3::new(0.95, 1., 0.95) * 0.3, 0.01, false),
+        Material::new(Vector3::new(0.95, 1., 0.95), 0.5, false),
     );
 
     let environment = Object::new(
@@ -67,7 +67,7 @@ fn main() {
     );
 
     let start = Instant::now();
-    let renderer = RecursiveBDPT::new(10).parallel(NUM_SAMPLES);
+    let renderer = RecursiveBDPT::new(5).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

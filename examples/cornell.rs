@@ -4,7 +4,7 @@ use path_tracer::{
     aperture::RegularPolygonAperture,
     camera::CameraSettings,
     renderer::RecursiveBDPT,
-    shape::{Cuboid, Plane},
+    shape::{Cuboid, Cylinder, Plane},
     Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
@@ -12,7 +12,7 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 10;
+const NUM_SAMPLES: usize = 100;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -27,9 +27,9 @@ fn main() {
     };
     let camera = Camera::new(camera_settings, aperture, 2.25);
 
-    let white_material = Material::new(Vector3::new(0.8, 0.8, 0.8), 1., false);
-    let green_material = Material::new(Vector3::new(0.1, 0.8, 0.1), 1., false);
-    let red_material = Material::new(Vector3::new(0.8, 0.1, 0.1), 1., false);
+    let white_material = Material::new(Vector3::new(1., 1., 1.) * 0.8, 0.5, false);
+    let green_material = Material::new(Vector3::new(0.1, 0.8, 0.1), 0.5, false);
+    let red_material = Material::new(Vector3::new(0.8, 0.1, 0.1), 0.5, false);
 
     let bottom_plane = Object::new(
         Plane::new(2., 2.),
@@ -99,12 +99,13 @@ fn main() {
         Plane::new(1.0, 1.0),
         //Sphere::new(1.),
         //Cuboid::new(1.0, 1.0, 0.2),
+        //Cylinder::new(1., 0.2),
         Similarity3::new(
-            Vector3::new(0., 0.95, 0.),
+            Vector3::new(0., 0.995, 0.),
             Vector3::new(-TAU / 4., 0., 0.),
             0.25,
         ),
-        Material::new(Vector3::new(1.0, 1.0, 0.5) * 2.0, 1., true),
+        Material::new(Vector3::new(1.0, 1.0, 0.5) * 1.5, 1., true),
     );
 
     let scene = Scene::new(
