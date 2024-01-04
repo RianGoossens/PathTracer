@@ -102,7 +102,7 @@ impl Material {
     ) -> f64 {
         match self {
             Material::Reflective { pdf, .. } => {
-                if (normal.dot(incoming) > 0.) != (normal.dot(outgoing) < 0.) {
+                if (normal.dot(incoming) >= 0.) != (normal.dot(outgoing) <= 0.) {
                     0.
                 } else {
                     let sampled_normal = find_normal(incoming, outgoing);

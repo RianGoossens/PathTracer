@@ -89,7 +89,7 @@ impl RecursiveBDPT {
                     &outgoing.direction,
                     &interaction.intersection.normal,
                 );
-                //let backward_path_importance = 1.; //
+                //let backward_path_importance = 1.;
 
                 let backward_path_color =
                     self.sample_camera_path(outgoing, scene, light_path, bounce + 1);

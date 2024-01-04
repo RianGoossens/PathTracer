@@ -25,7 +25,7 @@ impl Cuboid {
 }
 
 impl Shape for Cuboid {
-    fn intersection_distances(&self, ray: &Ray) -> Option<f64> {
+    fn intersection_distance(&self, ray: &Ray) -> Option<f64> {
         let mut result = INFINITY;
 
         let ts = [

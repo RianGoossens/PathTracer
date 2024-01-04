@@ -20,10 +20,10 @@ impl Sphere {
 }
 
 impl Shape for Sphere {
-    fn intersection_distances(&self, ray: &Ray) -> Option<f64> {
+    fn intersection_distance(&self, ray: &Ray) -> Option<f64> {
         let a = ray.direction.dot(&ray.direction);
         let b = 2. * ray.origin.coords.dot(&ray.direction);
-        let c = ray.origin.coords.dot(&ray.origin.coords) - self.radius;
+        let c = ray.origin.coords.dot(&ray.origin.coords) - self.radius.powi(2);
 
         let determinant = b * b - 4. * a * c;
         if determinant < 0. {

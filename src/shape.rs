@@ -5,10 +5,12 @@ use na::{Point3, Similarity3, Vector3};
 use crate::Ray;
 
 mod cuboid;
+mod cylinder;
 mod plane;
 mod sphere;
 
 pub use cuboid::Cuboid;
+pub use cylinder::Cylinder;
 pub use plane::Plane;
 pub use sphere::Sphere;
 
@@ -37,7 +39,7 @@ impl IntersectionInfo {
 }
 
 pub trait Shape: Send + Sync {
-    fn intersection_distances(&self, ray: &Ray) -> Option<f64>;
+    fn intersection_distance(&self, ray: &Ray) -> Option<f64>;
 
     fn sample_normal(&self, position: Point3<f64>) -> Vector3<f64>;
 
@@ -46,7 +48,7 @@ pub trait Shape: Send + Sync {
     fn area(&self) -> f64;
 
     fn intersection(&self, ray: &Ray) -> Option<IntersectionInfo> {
-        self.intersection_distances(ray).map(|distance| {
+        self.intersection_distance(ray).map(|distance| {
             let position = ray.origin + distance * ray.direction;
             let normal = self.sample_normal(position);
             IntersectionInfo {
@@ -58,7 +60,7 @@ pub trait Shape: Send + Sync {
     }
 
     fn blocks(&self, ray: &Ray) -> bool {
-        self.intersection_distances(ray).is_some()
+        self.intersection_distance(ray).is_some()
     }
 }
 
@@ -66,8 +68,8 @@ pub trait Shape: Send + Sync {
 pub struct Inverted<S: Shape>(pub S);
 
 impl<S: Shape> Shape for Inverted<S> {
-    fn intersection_distances(&self, ray: &Ray) -> Option<f64> {
-        self.0.intersection_distances(ray)
+    fn intersection_distance(&self, ray: &Ray) -> Option<f64> {
+        self.0.intersection_distance(ray)
     }
 
     fn area(&self) -> f64 {

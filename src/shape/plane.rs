@@ -18,7 +18,7 @@ impl Plane {
 }
 
 impl Shape for Plane {
-    fn intersection_distances(&self, Ray { origin, direction }: &Ray) -> Option<f64> {
+    fn intersection_distance(&self, Ray { origin, direction }: &Ray) -> Option<f64> {
         if direction.z == 0. {
             None
         } else {
@@ -27,10 +27,10 @@ impl Shape for Plane {
                 let x = origin.x + direction.x * t;
                 let y = origin.y + direction.y * t;
 
-                if x < -self.width / 2.
-                    || x > self.width / 2.
-                    || y < -self.height / 2.
-                    || y > self.height / 2.
+                if x <= -self.width / 2.
+                    || x >= self.width / 2.
+                    || y <= -self.height / 2.
+                    || y >= self.height / 2.
                 {
                     None
                 } else {
