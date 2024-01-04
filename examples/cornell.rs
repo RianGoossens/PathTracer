@@ -4,7 +4,7 @@ use path_tracer::{
     aperture::RegularPolygonAperture,
     camera::CameraSettings,
     renderer::RecursiveBDPT,
-    shape::{Cuboid, Cylinder, Plane},
+    shape::{Cuboid, Plane},
     Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
