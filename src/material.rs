@@ -106,16 +106,12 @@ impl Material {
                     0.
                 } else {
                     let sampled_normal = find_normal(incoming, outgoing);
-                    /*if sampled_normal.dot(normal) < 0. {
-                        sampled_normal *= -1.;
-                    }*/
                     let angle_dot = sampled_normal.dot(normal);
                     pdf.likelihood(angle_dot)
                 }
             }
             Material::Emissive { .. } => 1.,
         }
-        //ggx(angle_dot, self.roughness)
     }
 
     pub fn interact(&self, incoming: &Ray, intersection: &IntersectionInfo) -> SurfaceInteraction {
@@ -132,37 +128,25 @@ impl Material {
                 pdf,
                 ..
             } => {
-                let specular_normal = intersection.normal;
-
-                //let specular_outgoing = reflect(&incoming.direction, &specular_normal);
-
-                let mut random_direction: Vector3<f64> =
-                    Vector3::from_distribution(&StandardNormal, &mut thread_rng()).normalize();
-
-                if random_direction.dot(&specular_normal) < 0. {
-                    random_direction = reflect(&random_direction, &specular_normal);
-                }
-                let angle = random_direction.dot(&specular_normal).acos();
+                let mut rng = thread_rng();
                 let desired_angle = if *roughness == 0. {
-                    0.
+                    1.
                 } else {
-                    pdf.sample(&mut thread_rng()).acos()
+                    pdf.sample(&mut rng)
                 };
-                //println!("{angle} {desired_angle}");
 
-                let scatter_normal =
-                    specular_normal.slerp(&random_direction, desired_angle / angle);
-                /*println!(
-                    "{} {:?} {:?} {:?}",
-                    self.roughness, specular_normal, random_direction, scatter_normal
-                );*/
+                let specular_normal = &intersection.normal;
+                let random_direction: Vector3<f64> =
+                    Vector3::from_distribution(&StandardNormal, &mut rng).normalize();
 
-                //let mut outgoing_direction = specular_outgoing.slerp(&random_direction, self.roughness);
-                let mut outgoing_direction = reflect(&incoming.direction, &scatter_normal); //
+                let perpendicular_vector = specular_normal.cross(&random_direction);
 
-                /* */
-                if outgoing_direction.dot(&specular_normal) < 0. {
-                    outgoing_direction = reflect(&outgoing_direction, &specular_normal);
+                let scatter_normal = perpendicular_vector.slerp(specular_normal, desired_angle);
+
+                let mut outgoing_direction = reflect(&incoming.direction, &scatter_normal);
+
+                if outgoing_direction.dot(specular_normal) < 0. {
+                    outgoing_direction = reflect(&outgoing_direction, specular_normal);
                 }
 
                 let outgoing = Ray {
