@@ -5,7 +5,7 @@ use path_tracer::{
     camera::CameraSettings,
     renderer::RecursiveBDPT,
     shape::{Cylinder, Plane},
-    Camera, Material, Object, Renderer, Scene, Sphere,
+    BackwardRenderer, Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -48,7 +48,7 @@ fn main() {
             Vector3::new(-TAU / 4., 0., 0.),
             1.,
         ),
-        Material::new(Vector3::new(0.99, 0.1, 0.1), 0., false),
+        Material::new_reflective(Vector3::new(0.99, 0.1, 0.1), 0., 0.),
     );
 
     let top_light = Object::new(

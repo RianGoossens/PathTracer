@@ -2,21 +2,13 @@ use std::f64::consts::PI;
 
 use na::Vector3;
 use nalgebra as na;
-use rand::thread_rng;
+use rand::{thread_rng, Rng};
 use rand_distr::StandardNormal;
 
 use crate::{
     find_normal, function_approximation::ProbabilityDensityFunction, reflect,
     shape::IntersectionInfo, Ray,
 };
-
-#[derive(Clone)]
-pub struct OldMaterial {
-    pub color: Vector3<f64>,
-    pub roughness: f64,
-    pub emissive: bool,
-    pub pdf: ProbabilityDensityFunction,
-}
 
 #[derive(Clone)]
 pub enum Material {
@@ -101,13 +93,20 @@ impl Material {
         normal: &Vector3<f64>,
     ) -> f64 {
         match self {
-            Material::Reflective { pdf, .. } => {
+            Material::Reflective {
+                pdf, transmission, ..
+            } => {
                 if (normal.dot(incoming) >= 0.) != (normal.dot(outgoing) <= 0.) {
-                    0.
+                    let angle_dot = incoming.dot(outgoing);
+                    if angle_dot > 0.9999 {
+                        *transmission
+                    } else {
+                        0.
+                    }
                 } else {
                     let sampled_normal = find_normal(incoming, outgoing);
                     let angle_dot = sampled_normal.dot(normal);
-                    pdf.likelihood(angle_dot)
+                    pdf.likelihood(angle_dot) * (1. - transmission)
                 }
             }
             Material::Emissive { .. } => 1.,
@@ -126,6 +125,7 @@ impl Material {
                 color,
                 roughness,
                 pdf,
+                transmission,
                 ..
             } => {
                 let mut rng = thread_rng();
@@ -143,11 +143,18 @@ impl Material {
 
                 let scatter_normal = perpendicular_vector.slerp(specular_normal, desired_angle);
 
-                let mut outgoing_direction = reflect(&incoming.direction, &scatter_normal);
+                let transmitted = rng.gen_bool(*transmission);
+                let outgoing_direction = if transmitted {
+                    incoming.direction
+                } else {
+                    let mut outgoing_direction = reflect(&incoming.direction, &scatter_normal);
 
-                if outgoing_direction.dot(specular_normal) < 0. {
-                    outgoing_direction = reflect(&outgoing_direction, specular_normal);
-                }
+                    if outgoing_direction.dot(specular_normal) < 0. {
+                        outgoing_direction = reflect(&outgoing_direction, specular_normal);
+                    }
+
+                    outgoing_direction
+                };
 
                 let outgoing = Ray {
                     direction: outgoing_direction,

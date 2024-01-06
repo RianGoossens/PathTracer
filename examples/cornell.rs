@@ -86,7 +86,7 @@ fn main() {
             Vector3::new(0., 0., 0.),
             0.25,
         ),
-        Material::new_reflective(Vector3::new(0.9, 0.9, 0.9), 0., 0.),
+        Material::new_reflective(Vector3::new(0.9, 0.9, 0.9), 0., 0.1),
     );
 
     let sphere_b: Object = Object::new(
