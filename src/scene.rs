@@ -19,7 +19,7 @@ impl Scene {
             .iter()
             .enumerate()
             .filter_map(|(i, object)| {
-                if matches!(object.material, Material::Emissive { .. }) {
+                if matches!(object.material(), Material::Emissive { .. }) {
                     Some(i)
                 } else {
                     None
@@ -69,8 +69,8 @@ impl Scene {
 
         closest_intersection.map(|(object, intersection)| {
             (
-                &object.material,
-                intersection.transform_similarity(&object.transform),
+                object.material(),
+                intersection.transform_similarity(object.transform()),
             )
         })
     }

@@ -137,7 +137,7 @@ impl RecursiveBDPT {
         let light = scene.random_light();
 
         let light_ray = light.sample_emissive_ray();
-        let light_path = self.sample_light_path(&light_ray, scene, &light.material);
+        let light_path = self.sample_light_path(&light_ray, scene, light.material());
 
         self.sample_camera_path(ray, scene, &light_path, 0)
     }

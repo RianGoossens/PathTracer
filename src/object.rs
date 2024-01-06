@@ -5,10 +5,10 @@ use rand_distr::StandardNormal;
 use crate::{shape::IntersectionInfo, Material, Ray, Shape};
 
 pub struct Object {
-    pub shape: Box<dyn Shape>,
-    pub transform: Similarity3<f64>,
-    pub inverse_transform: Similarity3<f64>,
-    pub material: Material,
+    shape: Box<dyn Shape>,
+    transform: Similarity3<f64>,
+    inverse_transform: Similarity3<f64>,
+    material: Material,
 }
 
 impl Object {
@@ -23,6 +23,14 @@ impl Object {
             material,
             inverse_transform: transform.inverse(),
         }
+    }
+
+    pub fn transform(&self) -> &Similarity3<f64> {
+        &self.transform
+    }
+
+    pub fn material(&self) -> &Material {
+        &self.material
     }
 
     pub fn sample_emissive_ray(&self) -> Ray {

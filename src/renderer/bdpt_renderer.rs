@@ -103,8 +103,12 @@ impl BDPTRenderer {
         let light = scene.random_light();
 
         let light_ray = light.sample_emissive_ray();
-        let light_path =
-            self.sample_path(&light_ray, scene, &light.material, PathDirection::LightPath);
+        let light_path = self.sample_path(
+            &light_ray,
+            scene,
+            light.material(),
+            PathDirection::LightPath,
+        );
         let mut total_importance = 1.; //1. / camera_path.len() as f64;
         let mut total_light =
             total_importance * camera_path[camera_path.len() - 1].accumulated_emission;
