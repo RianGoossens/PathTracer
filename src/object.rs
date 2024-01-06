@@ -45,9 +45,7 @@ impl Object {
 
         global_ray
     }
-}
 
-impl Object {
     pub fn local_intersection(&self, ray: &Ray) -> Option<IntersectionInfo> {
         let local_ray = ray.transform_similarity(&self.inverse_transform);
 

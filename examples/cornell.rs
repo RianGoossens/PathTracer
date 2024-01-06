@@ -12,7 +12,7 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 100;
+const NUM_SAMPLES: usize = 10;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -92,7 +92,7 @@ fn main() {
     let sphere_b: Object = Object::new(
         Sphere::new(1.0),
         Similarity3::new(Vector3::new(0.5, -0.7, 0.2), Vector3::new(0., 0., 0.), 0.3),
-        Material::new_reflective(Vector3::new(0.4, 0.6, 0.9), 0.1, 0.),
+        Material::new_reflective(Vector3::new(0.4, 0.6, 0.9), 0.3, 0.5),
     );
 
     let top_light = Object::new(
@@ -124,10 +124,10 @@ fn main() {
     );
 
     let start = Instant::now();
-    let renderer = RecursiveBDPT::new(5).parallel(NUM_SAMPLES);
+    let renderer = RecursiveBDPT::new(10).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
-    //let render_buffer = render_buffer.median_filter(9);
+    //let render_buffer = render_buffer.median_filter(3);
     println!("Rendering took {:?}", start.elapsed());
 
     let image = render_buffer.srgb().to_image_u8();

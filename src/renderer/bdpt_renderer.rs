@@ -57,8 +57,8 @@ impl BDPTRenderer {
         let mut accumulated_emission = emission;
         let mut accumulated_absorption = absorption;
         for _bounce in 0..self.max_bounces {
-            if let Some((object, intersection)) = scene.intersection(&current_ray) {
-                let interaction = object.material.interact(&current_ray, &intersection);
+            if let Some((material, intersection)) = scene.intersection(&current_ray) {
+                let interaction = material.interact(&current_ray, &intersection);
                 let current_absorption = interaction.color_filter;
                 let current_emission = interaction.emission;
 
@@ -77,7 +77,7 @@ impl BDPTRenderer {
                     position: intersection.position,
                     normal: intersection.normal.normalize(),
                     incoming: current_ray.direction,
-                    material: &object.material,
+                    material,
                     accumulated_absorption,
                     accumulated_emission,
                 };
@@ -109,8 +109,8 @@ impl BDPTRenderer {
         let mut total_light =
             total_importance * camera_path[camera_path.len() - 1].accumulated_emission;
 
-        for (_i, vertex_camera) in camera_path[1..].iter().enumerate() {
-            for (_j, vertex_light) in light_path.iter().enumerate() {
+        for vertex_camera in &camera_path[1..] {
+            for vertex_light in &light_path {
                 if vertex_camera.normal.dot(&vertex_light.normal) < 0.
                     && scene.is_visible(&vertex_camera.position, &vertex_light.position)
                 {

@@ -1,3 +1,5 @@
+use std::f64::INFINITY;
+
 use nalgebra::Point3;
 use rand::{thread_rng, Rng};
 use rand_distr::WeightedAliasIndex;
@@ -52,38 +54,25 @@ impl Scene {
         }
     }
 
-    pub fn intersection(&self, ray: &Ray) -> Option<(&Object, IntersectionInfo)> {
-        let query = self
-            .objects
-            .iter()
-            .flat_map(|object| {
-                let intersection = object.local_intersection(ray);
-                intersection.map(|intersection| (object, intersection))
-            })
-            .reduce(
-                |closest @ (_, closest_intersection), current @ (_, intersection)| {
-                    if intersection.distance < closest_intersection.distance
-                        && intersection.distance >= 0.
-                    {
-                        current
-                    } else {
-                        closest
-                    }
-                },
-            );
+    pub fn intersection(&self, ray: &Ray) -> Option<(&Material, IntersectionInfo)> {
+        let mut closest_intersection = None;
+        let mut closest_distance = INFINITY;
 
-        if let Some((object, intersection)) = query {
-            Some((object, intersection.transform_similarity(&object.transform)))
-        } else {
-            None
+        for object in &self.objects {
+            if let Some(intersection) = object.local_intersection(ray) {
+                if intersection.distance >= 0. && intersection.distance < closest_distance {
+                    closest_intersection = Some((object, intersection));
+                    closest_distance = intersection.distance;
+                }
+            }
         }
-    }
 
-    pub fn lights(&self) -> Vec<&Object> {
-        self.light_indices
-            .iter()
-            .map(|i| &self.objects[*i])
-            .collect()
+        closest_intersection.map(|(object, intersection)| {
+            (
+                &object.material,
+                intersection.transform_similarity(&object.transform),
+            )
+        })
     }
 
     pub fn random_light(&self) -> &Object {

@@ -34,8 +34,8 @@ impl RecursiveBDPT {
         let mut current_ray = *ray;
         let mut accumulated_emission = emission;
         for _bounce in 0..self.max_bounces {
-            if let Some((object, intersection)) = scene.intersection(&current_ray) {
-                let interaction = object.material.interact(&current_ray, &intersection);
+            if let Some((material, intersection)) = scene.intersection(&current_ray) {
+                let interaction = material.interact(&current_ray, &intersection);
                 let current_absorption = interaction.color_filter;
                 let current_emission = interaction.emission;
 
@@ -46,7 +46,7 @@ impl RecursiveBDPT {
                     position: intersection.position,
                     normal: intersection.normal.normalize(),
                     incoming: current_ray.direction,
-                    material: &object.material,
+                    material,
                     accumulated_emission,
                 };
 
@@ -74,8 +74,8 @@ impl RecursiveBDPT {
         if bounce >= self.max_bounces {
             return Vector3::zeros();
         }
-        if let Some((object, intersection)) = scene.intersection(ray) {
-            let interaction = object.material.interact(ray, &intersection);
+        if let Some((material, intersection)) = scene.intersection(ray) {
+            let interaction = material.interact(ray, &intersection);
 
             let current_position = &intersection.position;
             let current_normal = &intersection.normal;
@@ -84,7 +84,7 @@ impl RecursiveBDPT {
             let mut total_importance = 0.;
 
             if let Some(outgoing) = &interaction.outgoing {
-                let backward_path_importance = object.material.likelihood(
+                let backward_path_importance = material.likelihood(
                     &ray.direction,
                     &outgoing.direction,
                     &interaction.intersection.normal,
@@ -107,9 +107,7 @@ impl RecursiveBDPT {
                         let difference = (vertex_light.position - current_position).normalize();
 
                         let ray_importance =
-                            object
-                                .material
-                                .likelihood(&ray.direction, &difference, current_normal);
+                            material.likelihood(&ray.direction, &difference, current_normal);
 
                         if ray_importance > 0. {
                             let light_importance = vertex_light.material.likelihood(
@@ -127,8 +125,8 @@ impl RecursiveBDPT {
             if total_importance > 0. {
                 current_color /= total_importance;
             }
-            current_color.component_mul_assign(&object.material.absorption_color());
-            current_color += object.material.emission_color();
+            current_color.component_mul_assign(&material.absorption_color());
+            current_color += material.emission_color();
             current_color
         } else {
             Vector3::zeros()
