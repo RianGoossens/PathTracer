@@ -65,59 +65,47 @@ impl RecursiveBDPT {
     }
 
     fn sample_camera_path(
-        &self,
         ray: &Ray,
         scene: &Scene,
         light_path: &[PathVertex],
-        bounce: u8,
+        bounces_left: u8,
     ) -> Vector3<f64> {
-        if bounce >= self.max_bounces {
+        if bounces_left == 0 {
             return Vector3::zeros();
         }
         if let Some((material, intersection)) = scene.intersection(ray) {
-            let interaction = material.interact(ray, &intersection);
-
             let current_position = &intersection.position;
             let current_normal = &intersection.normal;
 
             let mut current_color = Vector3::zeros();
             let mut total_importance = 0.;
 
+            let interaction = material.interact(ray, &intersection);
             if let Some(outgoing) = &interaction.outgoing {
-                let backward_path_importance = material.likelihood(
-                    &ray.direction,
-                    &outgoing.direction,
-                    &interaction.intersection.normal,
-                );
-                //let backward_path_importance = 1.;
-
                 let backward_path_color =
-                    self.sample_camera_path(outgoing, scene, light_path, bounce + 1);
+                    Self::sample_camera_path(outgoing, scene, light_path, bounces_left - 1);
 
-                current_color += backward_path_color * backward_path_importance;
-                total_importance += backward_path_importance;
+                current_color += backward_path_color * interaction.likelihood;
+                total_importance += interaction.likelihood;
+            }
 
-                for vertex_light in light_path {
-                    if
-                    /*current_normal.dot(&vertex_light.normal) < 0.
-                    &&*/
-                    scene.is_visible(current_position, &vertex_light.position) {
-                        let light_color = vertex_light.accumulated_emission;
+            for vertex_light in light_path {
+                if scene.is_visible(current_position, &vertex_light.position) {
+                    let light_color = vertex_light.accumulated_emission;
 
-                        let difference = (vertex_light.position - current_position).normalize();
+                    let difference = (vertex_light.position - current_position).normalize();
 
-                        let ray_importance =
-                            material.likelihood(&ray.direction, &difference, current_normal);
+                    let ray_importance =
+                        material.likelihood(&ray.direction, &difference, current_normal);
 
-                        if ray_importance > 0. {
-                            let light_importance = vertex_light.material.likelihood(
-                                &vertex_light.incoming,
-                                &-difference,
-                                &vertex_light.normal,
-                            );
-                            current_color += light_color * ray_importance * light_importance; //ray_importance * light_importance * light_color;
-                            total_importance += ray_importance;
-                        }
+                    if ray_importance > 0. {
+                        let light_importance = vertex_light.material.likelihood(
+                            &vertex_light.incoming,
+                            &-difference,
+                            &vertex_light.normal,
+                        );
+                        current_color += light_color * ray_importance * light_importance; //ray_importance * light_importance * light_color;
+                        total_importance += ray_importance;
                     }
                 }
             }
@@ -139,7 +127,7 @@ impl RecursiveBDPT {
         let light_ray = light.sample_emissive_ray();
         let light_path = self.sample_light_path(&light_ray, scene, light.material());
 
-        self.sample_camera_path(ray, scene, &light_path, 0)
+        Self::sample_camera_path(ray, scene, &light_path, self.max_bounces)
     }
 }
 

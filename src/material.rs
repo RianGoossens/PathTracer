@@ -47,6 +47,7 @@ pub struct SurfaceInteraction {
     pub color_filter: Vector3<f64>,
     pub emission: Vector3<f64>,
     pub outgoing: Option<Ray>,
+    pub likelihood: f64,
 }
 
 impl Material {
@@ -129,31 +130,33 @@ impl Material {
                 ..
             } => {
                 let mut rng = thread_rng();
-                let desired_angle = if *roughness == 0. {
-                    1.
-                } else {
-                    pdf.sample(&mut rng)
-                };
-
-                let specular_normal = &intersection.normal;
-                let random_direction: Vector3<f64> =
-                    Vector3::from_distribution(&StandardNormal, &mut rng).normalize();
-
-                let perpendicular_vector = specular_normal.cross(&random_direction);
-
-                let scatter_normal = perpendicular_vector.slerp(specular_normal, desired_angle);
-
                 let transmitted = rng.gen_bool(*transmission);
-                let outgoing_direction = if transmitted {
-                    incoming.direction
+                let (outgoing_direction, likelihood) = if transmitted {
+                    (incoming.direction, *transmission)
                 } else {
+                    let (desired_angle, likelihood) = if *roughness == 0. {
+                        (1., 1.)
+                    } else {
+                        let sample = pdf.sample(&mut rng);
+                        let likelihood = pdf.likelihood(sample);
+                        (sample, likelihood)
+                    };
+
+                    let specular_normal = &intersection.normal;
+                    let random_direction: Vector3<f64> =
+                        Vector3::from_distribution(&StandardNormal, &mut rng).normalize();
+
+                    let perpendicular_vector = specular_normal.cross(&random_direction);
+
+                    let scatter_normal = perpendicular_vector.slerp(specular_normal, desired_angle);
+
                     let mut outgoing_direction = reflect(&incoming.direction, &scatter_normal);
 
                     if outgoing_direction.dot(specular_normal) < 0. {
                         outgoing_direction = reflect(&outgoing_direction, specular_normal);
                     }
 
-                    outgoing_direction
+                    (outgoing_direction, likelihood * (1.0 - transmission))
                 };
 
                 let outgoing = Ray {
@@ -166,6 +169,7 @@ impl Material {
                     color_filter: *color,
                     emission: Vector3::zeros(),
                     outgoing: Some(outgoing),
+                    likelihood,
                 }
             }
             Material::Emissive { color } => SurfaceInteraction {
@@ -173,6 +177,7 @@ impl Material {
                 color_filter: Vector3::new(1., 1., 1.),
                 emission: *color,
                 outgoing: None,
+                likelihood: 1.,
             },
         }
     }
