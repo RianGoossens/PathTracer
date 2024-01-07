@@ -1,5 +1,3 @@
-mod first_caustics;
-
 use std::time::Instant;
 
 use path_tracer::{
