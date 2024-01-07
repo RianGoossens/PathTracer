@@ -5,7 +5,7 @@ use path_tracer::{
     camera::CameraSettings,
     renderer::RecursiveBDPT,
     shape::{Cylinder, Plane},
-    BackwardRenderer, Camera, Material, Object, Renderer, Scene, Sphere,
+    Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
