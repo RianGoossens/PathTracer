@@ -1,10 +1,7 @@
 use std::{f64::consts::TAU, time::Instant};
 
 use path_tracer::{
-    aperture::{PinholeAperture, RegularPolygonAperture},
-    camera::CameraSettings,
-    renderer::RecursiveBDPT,
-    shape::{Cylinder, Plane},
+    aperture::PinholeAperture, camera::CameraSettings, renderer::RecursiveBDPT, shape::Plane,
     Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
