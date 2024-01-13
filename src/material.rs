@@ -23,11 +23,11 @@ pub enum Material {
     },
 }
 
-/*
-fn roughness_pdf(x: f64, roughness: f64) -> f64 {
-    let roughness = roughness + 0.0001;
-    E.powf(-(x * x) / (roughness * roughness) / 2.) / (roughness * TAU.sqrt())
-}*/
+// fn ggx(x: f64, roughness: f64) -> f64 {
+//     let roughness = roughness.powf(2.) + 0.0001;
+//     let x = 1. - x;
+//     E.powf(-(x * x) / (roughness * roughness) / 2.) / (roughness * TAU.sqrt())
+// }
 
 fn ggx(x: f64, roughness: f64) -> f64 {
     if roughness < 0.001 {
