@@ -1,11 +1,8 @@
 use std::{f64::consts::TAU, time::Instant};
 
 use path_tracer::{
-    aperture::PinholeAperture,
-    camera::CameraSettings,
-    renderer::{BDPTRenderer, RecursiveBDPT},
-    shape::{Cuboid, Plane},
-    BackwardRenderer, Camera, Material, Object, Renderer, Scene, Sphere,
+    aperture::PinholeAperture, camera::CameraSettings, renderer::RecursiveBDPT, shape::Cuboid,
+    Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;

@@ -41,7 +41,7 @@ fn main() {
     let scene = Scene::new(camera, vec![sphere, light]);
 
     let start = Instant::now();
-    let renderer = RecursiveBDPT::new(5); //.parallel(NUM_SAMPLES);
+    let renderer = RecursiveBDPT::new(5).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());
