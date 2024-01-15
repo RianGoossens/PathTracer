@@ -1,8 +1,11 @@
 use std::{f64::consts::TAU, time::Instant};
 
 use path_tracer::{
-    aperture::PinholeAperture, camera::CameraSettings, renderer::RecursiveBDPT, shape::Plane,
-    Camera, Material, Object, Renderer, Scene, Sphere,
+    aperture::PinholeAperture,
+    camera::CameraSettings,
+    renderer::{BDPTRenderer, RecursiveBDPT},
+    shape::{Cuboid, Plane},
+    BackwardRenderer, Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -27,50 +30,54 @@ fn main() {
     let camera = Camera::new(camera_settings, PinholeAperture, 1.);
 
     let plane = Object::new(
-        Plane::new(6., 6.),
-        Similarity3::new(Vector3::zeros(), Vector3::zeros(), 1.),
-        Material::new_reflective(Vector3::new(1., 1., 1.), 1., 0.),
+        Cuboid::new(6., 6., 1.),
+        Similarity3::new(Vector3::new(0., 0., -0.6), Vector3::zeros(), 1.),
+        Material::new_reflective(Vector3::new(1., 1., 1.) * 0.9, 1., 0., 1.),
     );
 
+    let ior = 3.;
     let sphere_a = Object::new(
         Sphere::new(0.3),
         Similarity3::new(Vector3::new(0.6, -0.5, 0.3), Vector3::zeros(), 1.),
-        Material::new_reflective(Vector3::new(0.9, 0.1, 0.1), 0.2, 0.25),
+        Material::new_reflective(Vector3::new(0.9, 0.1, 0.1), 0.2, 0.25, ior),
     );
 
     let sphere_b = Object::new(
         Sphere::new(0.3),
         Similarity3::new(Vector3::new(0., 0., 0.3), Vector3::zeros(), 1.),
-        Material::new_reflective(Vector3::new(0.1, 0.9, 0.1), 0.2, 0.5),
+        Material::new_reflective(Vector3::new(0.1, 0.9, 0.1), 0., 0.5, ior),
     );
 
     let sphere_c = Object::new(
         Sphere::new(0.3),
         Similarity3::new(Vector3::new(-0.6, -0.5, 0.3), Vector3::zeros(), 1.),
-        Material::new_reflective(Vector3::new(0.1, 0.1, 0.9), 0.2, 0.75),
+        Material::new_reflective(Vector3::new(0.1, 0.1, 0.9), 0.2, 0.75, ior),
     );
 
     let light = Object::new(
         Sphere::new(0.5),
-        Similarity3::new(Vector3::new(0., -2., 1.), Vector3::zeros(), 1.),
+        Similarity3::new(Vector3::new(0., -3., 2.), Vector3::zeros(), 1.),
         Material::Emissive {
             color: Vector3::new(1., 1., 1.) * 4.,
         },
     );
 
-    let environment = Object::new(
+    let _light_enclosure = Object::new(
+        Sphere::new(0.55),
+        Similarity3::new(Vector3::new(0., -1., 1.), Vector3::zeros(), 1.),
+        Material::new_reflective(Vector3::new(1., 1., 1.), 0., 1., 2.),
+    );
+
+    let _environment = Object::new(
         Sphere::new(5.),
         Similarity3::new(Vector3::new(0., 0., 0.), Vector3::zeros(), 1.),
-        Material::new_reflective(Vector3::new(1., 1., 1.) * 0.5, 1., 0.9),
+        Material::new_reflective(Vector3::new(1., 1., 1.) * 0.01, 0., 0.1, 1.),
     );
 
-    let scene = Scene::new(
-        camera,
-        vec![plane, sphere_a, sphere_b, sphere_c, light, environment],
-    );
+    let scene = Scene::new(camera, vec![plane, sphere_a, sphere_b, sphere_c, light]);
 
     let start = Instant::now();
-    let renderer = RecursiveBDPT::new(10).parallel(NUM_SAMPLES);
+    let renderer = RecursiveBDPT::new(5).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

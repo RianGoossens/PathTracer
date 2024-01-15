@@ -29,7 +29,13 @@ impl RecursiveBDPT {
     ) -> Vec<PathVertex<'a>> {
         let emission = material.emission_color();
 
-        let mut current_path = vec![];
+        let mut current_path = vec![PathVertex {
+            position: ray.origin,
+            normal: ray.direction,
+            incoming: -ray.direction,
+            material,
+            accumulated_emission: emission,
+        }];
 
         let mut current_ray = *ray;
         let mut accumulated_emission = emission;
@@ -87,25 +93,30 @@ impl RecursiveBDPT {
 
                 current_color += backward_path_color * interaction.likelihood;
                 total_importance += interaction.likelihood;
-            }
 
-            for vertex_light in light_path {
-                if scene.is_visible(current_position, &vertex_light.position) {
-                    let light_color = vertex_light.accumulated_emission;
+                for vertex_light in &light_path[1..] {
+                    if scene.is_visible(current_position, &vertex_light.position) {
+                        let light_color = vertex_light.accumulated_emission;
 
-                    let difference = (vertex_light.position - current_position).normalize();
+                        let light_to_camera_connection =
+                            (current_position - vertex_light.position).normalize();
 
-                    let ray_importance =
-                        material.likelihood(&ray.direction, &difference, current_normal);
-
-                    if ray_importance > 0. {
                         let light_importance = vertex_light.material.likelihood(
                             &vertex_light.incoming,
-                            &-difference,
+                            &light_to_camera_connection,
                             &vertex_light.normal,
                         );
-                        current_color += light_color * ray_importance * light_importance; //ray_importance * light_importance * light_color;
-                        total_importance += ray_importance;
+
+                        if light_importance > 0. {
+                            let ray_importance = material.likelihood(
+                                &light_to_camera_connection,
+                                &-ray.direction,
+                                current_normal,
+                            );
+
+                            current_color += light_color * ray_importance * light_importance;
+                            total_importance += ray_importance;
+                        }
                     }
                 }
             }
@@ -113,7 +124,8 @@ impl RecursiveBDPT {
             if total_importance > 0. {
                 current_color /= total_importance;
             }
-            current_color.component_mul_assign(&material.absorption_color());
+            current_color
+                .component_mul_assign(&material.absorption_color(&current_position.coords));
             current_color += material.emission_color();
             current_color
         } else {

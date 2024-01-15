@@ -39,7 +39,7 @@ impl BDPTRenderer {
         material: &'a Material,
         path_direction: PathDirection,
     ) -> Vec<PathVertex<'a>> {
-        let absorption = material.absorption_color();
+        let absorption = material.absorption_color(&ray.origin.coords);
         let emission = material.emission_color();
 
         let first_vertex = PathVertex {

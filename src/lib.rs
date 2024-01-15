@@ -9,6 +9,7 @@ pub mod ray;
 pub mod render_buffer;
 pub mod renderer;
 pub mod scene;
+pub mod shader;
 pub mod shape;
 
 pub use aperture::Aperture;
@@ -19,6 +20,7 @@ pub use ray::Ray;
 pub use render_buffer::RenderBuffer;
 pub use renderer::{BackwardRenderer, Renderer};
 pub use scene::Scene;
+pub use shader::Shader;
 pub use shape::{Inverted, Shape, Sphere};
 
 pub fn reflect(incoming: &Vector3<f64>, normal: &Vector3<f64>) -> Vector3<f64> {

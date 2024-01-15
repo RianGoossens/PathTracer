@@ -12,7 +12,7 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 10;
+const NUM_SAMPLES: usize = 100;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -86,13 +86,13 @@ fn main() {
             Vector3::new(0., 0., 0.),
             0.25,
         ),
-        Material::new_reflective(Vector3::new(0.9, 0.9, 0.9), 0., 0.1),
+        Material::new_reflective(Vector3::new(0.9, 0.9, 0.9), 0., 0.5, 1.4),
     );
 
     let sphere_b: Object = Object::new(
         Sphere::new(1.0),
         Similarity3::new(Vector3::new(0.5, -0.7, 0.2), Vector3::new(0., 0., 0.), 0.3),
-        Material::new_reflective(Vector3::new(0.4, 0.6, 0.9), 0.3, 0.5),
+        Material::new_reflective(Vector3::new(0.4, 0.6, 0.9), 0.3, 0.5, 1.),
     );
 
     let top_light = Object::new(

@@ -39,12 +39,12 @@ impl Shape for Cuboid {
         for t in ts {
             if t >= 0. && t < result {
                 let position = ray.sample(t);
-                if -self.width / 2. <= position.x + 0.001
-                    && position.x <= self.width / 2. + 0.001
-                    && -self.height / 2. <= position.y + 0.001
-                    && position.y <= self.height / 2. + 0.001
-                    && -self.depth / 2. <= position.z + 0.001
-                    && position.z <= self.depth / 2. + 0.001
+                if -self.width / 2. <= position.x
+                    && position.x <= self.width / 2.
+                    && -self.height / 2. <= position.y
+                    && position.y <= self.height / 2.
+                    && -self.depth / 2. <= position.z
+                    && position.z <= self.depth / 2.
                 {
                     result = t;
                 }
@@ -60,8 +60,17 @@ impl Shape for Cuboid {
     }
 
     fn sample_normal(&self, position: Point3<f64>) -> Vector3<f64> {
+        let normalized_position =
+            position
+                .coords
+                .component_div(&Vector3::new(self.width, self.height, self.depth));
+
         let biggest_index = (0..3)
-            .max_by(|a, b| position[*a].abs().total_cmp(&position[*b].abs()))
+            .max_by(|a, b| {
+                normalized_position[*a]
+                    .abs()
+                    .total_cmp(&normalized_position[*b].abs())
+            })
             .unwrap();
 
         let mut normal = Vector3::zeros();

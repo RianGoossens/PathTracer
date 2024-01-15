@@ -48,7 +48,7 @@ fn main() {
             Vector3::new(-TAU / 4., 0., 0.),
             1.,
         ),
-        Material::new_reflective(Vector3::new(0.99, 0.1, 0.1), 0., 0.),
+        Material::new_reflective(Vector3::new(0.99, 0.1, 0.1), 0., 0., 1.),
     );
 
     let top_light = Object::new(
