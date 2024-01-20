@@ -52,8 +52,8 @@ fn main() {
     );
 
     let light = Object::new(
-        Sphere::new(0.5),
-        Similarity3::new(Vector3::new(0., -3., 2.), Vector3::zeros(), 1.),
+        Sphere::new(1.),
+        Similarity3::new(Vector3::new(0., -3., 1.5), Vector3::zeros(), 1.),
         Material::Emissive {
             color: Vector3::new(1., 1., 1.) * 1.,
         },
