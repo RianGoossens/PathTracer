@@ -136,7 +136,7 @@ impl FunctionApproximation {
 pub struct ProbabilityDensityFunction {
     pub pdf: FunctionApproximation,
     pub inverse_cdf: FunctionApproximation,
-    max_density: f64,
+    //max_density: f64,
 }
 
 impl ProbabilityDensityFunction {
@@ -149,12 +149,12 @@ impl ProbabilityDensityFunction {
         let cdf = pdf.integrate();
         let inverse_cdf = cdf.invert();
 
-        let max_density = *pdf.ys.iter().max_by(|a, b| a.total_cmp(b)).unwrap();
+        //let max_density = *pdf.ys.iter().max_by(|a, b| a.total_cmp(b)).unwrap();
 
         Self {
             pdf,
             inverse_cdf,
-            max_density,
+            //max_density,
         }
     }
 

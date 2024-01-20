@@ -1,7 +1,7 @@
 use na::{Point3, Vector3};
 use nalgebra as na;
 
-use crate::{object, Material, Ray, RenderBuffer, Renderer, Scene};
+use crate::{Material, Ray, RenderBuffer, Renderer, Scene};
 
 #[derive(Clone, Copy)]
 struct PathVertex<'a> {
