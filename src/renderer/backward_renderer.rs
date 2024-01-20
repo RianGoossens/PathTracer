@@ -17,11 +17,11 @@ impl BackwardRenderer {
         let mut current_ray = *ray;
 
         for _bounce in 0..self.max_bounces {
-            if let Some((material, intersection)) = scene.intersection(&current_ray) {
-                let interaction = material.interact(&current_ray, &intersection);
+            if let Some((object, intersection)) = scene.intersection(&current_ray) {
+                let interaction = object.material().interact(&current_ray, &intersection);
 
                 current_emission += interaction.emission.component_mul(&current_color_filter);
-                current_color_filter.component_mul_assign(&interaction.color_filter);
+                current_color_filter.component_mul_assign(&interaction.filter);
 
                 if let Some(outgoing) = interaction.outgoing {
                     current_ray = outgoing;

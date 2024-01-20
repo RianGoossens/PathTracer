@@ -12,7 +12,7 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 100;
+const NUM_SAMPLES: usize = 500;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -52,9 +52,9 @@ fn main() {
     );
 
     let top_light = Object::new(
-        Sphere::new(0.5),
+        Sphere::new(1.0),
         Similarity3::new(Vector3::new(1.5, 1.0, 2.), Vector3::new(0., 0., 0.), 1.0),
-        Material::new(Vector3::new(1.0, 1.0, 1.0) * 5.0, 1., true),
+        Material::new(Vector3::new(1.0, 1.0, 1.0) * 1.0, 1., true),
     );
 
     let scene = Scene::new(camera, vec![bottom_plane, cylinder, top_light]);

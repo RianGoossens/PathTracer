@@ -1,6 +1,6 @@
 use std::{f64::consts::PI, sync::Arc};
 
-use na::Vector3;
+use na::{Point3, Vector3};
 use nalgebra as na;
 use rand::{thread_rng, Rng};
 use rand_distr::StandardNormal;
@@ -44,11 +44,12 @@ fn ggx(x: f64, roughness: f64) -> f64 {
 
 #[derive(Clone, Copy, Debug)]
 pub struct SurfaceInteraction {
-    pub intersection: IntersectionInfo,
-    pub color_filter: Vector3<f64>,
+    pub position: Point3<f64>,
+    pub surface_normal: Vector3<f64>,
+    pub filter: Vector3<f64>,
     pub emission: Vector3<f64>,
     pub outgoing: Option<Ray>,
-    pub likelihood: f64,
+    pub pdf: f64,
 }
 
 impl Material {
@@ -195,19 +196,21 @@ impl Material {
                 };
 
                 SurfaceInteraction {
-                    intersection,
-                    color_filter: color.shade(&intersection.position.coords),
+                    position: intersection.position,
+                    surface_normal: intersection.normal,
+                    filter: color.shade(&intersection.position.coords),
                     emission: Vector3::zeros(),
                     outgoing: Some(outgoing),
-                    likelihood,
+                    pdf: likelihood,
                 }
             }
             Material::Emissive { color } => SurfaceInteraction {
-                intersection,
-                color_filter: Vector3::new(1., 1., 1.),
+                position: intersection.position,
+                surface_normal: intersection.normal,
+                filter: Vector3::new(1., 1., 1.),
                 emission: *color,
                 outgoing: None,
-                likelihood: 1.,
+                pdf: 1.,
             },
         }
     }

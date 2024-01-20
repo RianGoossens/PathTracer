@@ -1,7 +1,7 @@
 use na::{Point3, Vector3};
 use nalgebra as na;
 
-use crate::{Material, Ray, RenderBuffer, Renderer, Scene};
+use crate::{object, Material, Ray, RenderBuffer, Renderer, Scene};
 
 #[derive(Clone, Copy)]
 struct PathVertex<'a> {
@@ -27,7 +27,7 @@ impl RecursiveBDPT {
         scene: &'a Scene,
         material: &'a Material,
     ) -> Vec<PathVertex<'a>> {
-        let emission = material.emission_color();
+        let emission = material.emission_color(); // / light_area;
 
         let mut current_path = vec![PathVertex {
             position: ray.origin,
@@ -40,17 +40,17 @@ impl RecursiveBDPT {
         let mut current_ray = *ray;
         let mut accumulated_emission = emission;
         for _bounce in 0..self.max_bounces {
-            if let Some((material, intersection)) = scene.intersection(&current_ray) {
+            if let Some((object, intersection)) = scene.intersection(&current_ray) {
+                let material = object.material();
                 let interaction = material.interact(&current_ray, &intersection);
-                let current_absorption = interaction.color_filter;
-                let current_emission = interaction.emission;
 
-                accumulated_emission =
-                    accumulated_emission.component_mul(&current_absorption) + current_emission;
+                accumulated_emission = (accumulated_emission.component_mul(&interaction.filter)
+                    + interaction.emission)
+                    * interaction.pdf;
 
                 let vertex = PathVertex {
-                    position: intersection.position,
-                    normal: intersection.normal.normalize(),
+                    position: interaction.position,
+                    normal: interaction.surface_normal,
                     incoming: current_ray.direction,
                     material,
                     accumulated_emission,
@@ -79,22 +79,23 @@ impl RecursiveBDPT {
         if bounces_left == 0 {
             return Vector3::zeros();
         }
-        if let Some((material, intersection)) = scene.intersection(ray) {
+        if let Some((object, intersection)) = scene.intersection(ray) {
             let current_position = &intersection.position;
             let current_normal = &intersection.normal;
+            let material = object.material();
 
             let mut current_color = Vector3::zeros();
-            let mut total_importance = 0.;
+            let mut total_likelihood = 0.;
 
             let interaction = material.interact(ray, &intersection);
             if let Some(outgoing) = &interaction.outgoing {
                 let backward_path_color =
                     Self::sample_camera_path(outgoing, scene, light_path, bounces_left - 1);
 
-                current_color += backward_path_color * interaction.likelihood;
-                total_importance += interaction.likelihood;
+                current_color += backward_path_color * interaction.pdf;
+                total_likelihood += interaction.pdf;
 
-                for vertex_light in &light_path[1..] {
+                for vertex_light in light_path {
                     if scene.is_visible(current_position, &vertex_light.position) {
                         let light_color = vertex_light.accumulated_emission;
 
@@ -114,19 +115,20 @@ impl RecursiveBDPT {
                                 current_normal,
                             );
 
-                            current_color += light_color * ray_importance * light_importance;
-                            total_importance += ray_importance;
+                            if ray_importance > 0. {
+                                current_color += light_color * ray_importance * light_importance;
+                                total_likelihood += ray_importance;
+                            }
                         }
                     }
                 }
             }
-            //println!("{total_importance} {current_color}");
-            if total_importance > 0. {
-                current_color /= total_importance;
+            if total_likelihood > 0. {
+                current_color /= total_likelihood;
             }
             current_color
                 .component_mul_assign(&material.absorption_color(&current_position.coords));
-            current_color += material.emission_color();
+            current_color += material.emission_color(); // / object.area();
             current_color
         } else {
             Vector3::zeros()

@@ -54,7 +54,7 @@ impl Scene {
         }
     }
 
-    pub fn intersection(&self, ray: &Ray) -> Option<(&Material, IntersectionInfo)> {
+    pub fn intersection(&self, ray: &Ray) -> Option<(&Object, IntersectionInfo)> {
         let mut closest_intersection = None;
         let mut closest_distance = INFINITY;
 
@@ -69,7 +69,7 @@ impl Scene {
 
         closest_intersection.map(|(object, intersection)| {
             (
-                object.material(),
+                object,
                 intersection.transform_similarity(object.transform()),
             )
         })

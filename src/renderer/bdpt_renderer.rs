@@ -1,7 +1,7 @@
 use na::{Point3, Vector3};
 use nalgebra as na;
 
-use crate::{Material, Ray, RenderBuffer, Renderer, Scene};
+use crate::{object, Material, Ray, RenderBuffer, Renderer, Scene};
 
 #[derive(Clone, Copy)]
 struct PathVertex<'a> {
@@ -57,9 +57,9 @@ impl BDPTRenderer {
         let mut accumulated_emission = emission;
         let mut accumulated_absorption = absorption;
         for _bounce in 0..self.max_bounces {
-            if let Some((material, intersection)) = scene.intersection(&current_ray) {
-                let interaction = material.interact(&current_ray, &intersection);
-                let current_absorption = interaction.color_filter;
+            if let Some((object, intersection)) = scene.intersection(&current_ray) {
+                let interaction = object.material().interact(&current_ray, &intersection);
+                let current_absorption = interaction.filter;
                 let current_emission = interaction.emission;
 
                 accumulated_emission = match path_direction {
@@ -77,7 +77,7 @@ impl BDPTRenderer {
                     position: intersection.position,
                     normal: intersection.normal.normalize(),
                     incoming: current_ray.direction,
-                    material,
+                    material: object.material(),
                     accumulated_absorption,
                     accumulated_emission,
                 };

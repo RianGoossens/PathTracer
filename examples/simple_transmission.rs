@@ -55,7 +55,7 @@ fn main() {
         Sphere::new(0.5),
         Similarity3::new(Vector3::new(0., -3., 2.), Vector3::zeros(), 1.),
         Material::Emissive {
-            color: Vector3::new(1., 1., 1.) * 4.,
+            color: Vector3::new(1., 1., 1.) * 1.,
         },
     );
 
@@ -68,7 +68,7 @@ fn main() {
     let _environment = Object::new(
         Sphere::new(5.),
         Similarity3::new(Vector3::new(0., 0., 0.), Vector3::zeros(), 1.),
-        Material::new_reflective(Vector3::new(1., 1., 1.) * 0.01, 0., 0.1, 1.),
+        Material::new_reflective(Vector3::new(1., 1., 1.) * 0.1, 1.0, 0.5, 1.),
     );
 
     let scene = Scene::new(camera, vec![plane, sphere_a, sphere_b, sphere_c, light]);

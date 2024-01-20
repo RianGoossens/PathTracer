@@ -12,7 +12,7 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 100;
+const NUM_SAMPLES: usize = 10;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -96,16 +96,16 @@ fn main() {
     );
 
     let top_light = Object::new(
-        Plane::new(1.0, 1.0),
+        Plane::new(0.25, 0.25),
         //Sphere::new(1.),
         //Cuboid::new(1.0, 1.0, 0.2),
         //Cylinder::new(1., 0.2),
         Similarity3::new(
             Vector3::new(0., 0.995, 0.),
             Vector3::new(-TAU / 4., 0., 0.),
-            0.25,
+            1.,
         ),
-        Material::new(Vector3::new(1.0, 1.0, 0.5) * 1.5, 1., true),
+        Material::new(Vector3::new(1.0, 1.0, 0.5), 1., true),
     );
 
     let scene = Scene::new(
@@ -124,7 +124,7 @@ fn main() {
     );
 
     let start = Instant::now();
-    let renderer = RecursiveBDPT::new(10).parallel(NUM_SAMPLES);
+    let renderer = RecursiveBDPT::new(5).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     //let render_buffer = render_buffer.median_filter(3);

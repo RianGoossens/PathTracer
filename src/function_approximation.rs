@@ -162,7 +162,7 @@ impl ProbabilityDensityFunction {
         if value < self.pdf.start || value > self.pdf.end {
             0.
         } else {
-            self.pdf.apply(value).unwrap() / self.max_density
+            self.pdf.apply(value).unwrap().min(1.)
         }
     }
 
