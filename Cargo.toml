@@ -3,8 +3,11 @@ name = "path-tracer"
 version = "0.1.0"
 edition = "2021"
 
+[profile.release]
+lto = true
+
 [dependencies]
-image = { version = "0.24.7", default-features = false, features = ["png", "exr"] }
-nalgebra = { version = "0.32.3", features = ["rand"] }
+image = { version = "0.25.1", default-features = false, features = ["png", "exr"] }
+nalgebra = { version = "0.33.0", features = ["rand"] }
 rand = { version = "0.8.5", features = ["min_const_gen"] }
 rand_distr = "0.4.3"

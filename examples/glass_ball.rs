@@ -13,7 +13,7 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 100;
+const NUM_SAMPLES: usize = 1000;
 const SIZE: u32 = 300;
 
 fn main() {
