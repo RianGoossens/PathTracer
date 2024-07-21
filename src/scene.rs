@@ -1,5 +1,3 @@
-use std::f64::INFINITY;
-
 use nalgebra::Point3;
 use rand::{thread_rng, Rng};
 use rand_distr::WeightedAliasIndex;
@@ -56,7 +54,7 @@ impl Scene {
 
     pub fn intersection(&self, ray: &Ray) -> Option<(&Object, IntersectionInfo)> {
         let mut closest_intersection = None;
-        let mut closest_distance = INFINITY;
+        let mut closest_distance = f64::INFINITY;
 
         for object in &self.objects {
             if let Some(intersection) = object.local_intersection(ray) {
