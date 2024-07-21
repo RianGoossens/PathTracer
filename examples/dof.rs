@@ -25,37 +25,37 @@ fn main() {
 
     let sphere_shape = Sphere::new(1.);
 
-    let sphere_a = Object::new(
+    let sphere_a = Object::new_old(
         sphere_shape,
         Similarity3::new(Vector3::new(1.5, -0.5, 1.), Vector3::zeros(), 1.),
         Material::new(Vector3::new(0.8, 0.1, 0.1), 0.9, false),
     );
 
-    let sphere_b = Object::new(
+    let sphere_b = Object::new_old(
         sphere_shape,
         Similarity3::new(Vector3::new(1., 0., 0.), Vector3::zeros(), 1.),
         Material::new(Vector3::new(0.1, 0.8, 0.1), 0.9, false),
     );
 
-    let sphere_c = Object::new(
+    let sphere_c = Object::new_old(
         sphere_shape,
         Similarity3::new(Vector3::new(0.5, 0.5, -1.), Vector3::zeros(), 1.),
         Material::new(Vector3::new(0.1, 0.1, 0.8), 0.9, false),
     );
 
-    let light = Object::new(
+    let light = Object::new_old(
         sphere_shape,
         Similarity3::new(Vector3::new(-1.5, 0., 0.), Vector3::zeros(), 0.5),
         Material::new(Vector3::new(1., 1., 1.), 1.0, true),
     );
 
-    let big_sphere = Object::new(
+    let big_sphere = Object::new_old(
         Sphere::new(1.),
         Similarity3::new(Vector3::new(0., -7.5, 0.), Vector3::zeros(), 6.1),
         Material::new(Vector3::new(0.95, 1., 0.95), 0.5, false),
     );
 
-    let environment = Object::new(
+    let environment = Object::new_old(
         Inverted(Sphere::new(1.)),
         Similarity3::new(Vector3::new(0., 0., 0.), Vector3::zeros(), 6.1),
         Material::new(Vector3::new(1., 1., 1.) * 0.3, 1., false),

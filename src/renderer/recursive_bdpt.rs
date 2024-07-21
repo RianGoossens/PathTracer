@@ -115,10 +115,8 @@ impl RecursiveBDPT {
                                 current_normal,
                             );
 
-                            if ray_importance > 0. {
-                                current_color += light_color * ray_importance * light_importance;
-                                total_likelihood += ray_importance;
-                            }
+                            current_color += light_color * ray_importance * light_importance;
+                            total_likelihood += ray_importance;
                         }
                     }
                 }

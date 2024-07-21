@@ -17,25 +17,25 @@ fn main() {
 
     let sphere_shape = Sphere::new(1.);
 
-    let sphere_a = Object::new(
+    let sphere_a = Object::new_old(
         sphere_shape,
         Similarity3::new(Vector3::new(1.5, 1., -5.), Vector3::zeros(), 1.),
         Material::new(Vector3::new(0.8, 0.6, 0.7), 0.01, false),
     );
 
-    let sphere_b = Object::new(
+    let sphere_b = Object::new_old(
         sphere_shape,
         Similarity3::new(Vector3::new(-1.5, 1., -5.), Vector3::zeros(), 1.),
         Material::new(Vector3::new(0.4, 0.85, 0.3), 0.9, false),
     );
 
-    let environment = Object::new(
+    let environment = Object::new_old(
         Inverted(Sphere::new(1.)),
         Similarity3::new(Vector3::new(0., 0., 0.), Vector3::zeros(), 5.),
         Material::new(Vector3::new(0.6, 0.75, 0.5) * 0.5, 0.8, false),
     );
 
-    let light = Object::new(
+    let light = Object::new_old(
         sphere_shape,
         Similarity3::new(Vector3::new(0., -0.5, -5.), Vector3::zeros(), 0.75),
         Material::new(Vector3::new(1., 1., 1.) * 1., 1.0, true),

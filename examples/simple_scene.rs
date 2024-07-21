@@ -24,13 +24,13 @@ fn main() {
     };
     let camera = Camera::new(camera_settings, aperture, 5.);
 
-    let sphere: Object = Object::new(
+    let sphere: Object = Object::new_old(
         Sphere::new(1.),
         Similarity3::new(Vector3::new(1., 1., 0.), Vector3::zeros(), 1.),
         Material::new(Vector3::new(0.1, 0.8, 0.1), 1., false),
     );
 
-    let light = Object::new(
+    let light = Object::new_old(
         Sphere::new(1.),
         Similarity3::new(Vector3::new(1.0, -1.5, 0.), Vector3::zeros(), 1.),
         Material::Emissive {

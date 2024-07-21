@@ -31,7 +31,7 @@ fn main() {
     let green_material = Material::new(Vector3::new(0.1, 0.8, 0.1), 0.5, false);
     let red_material = Material::new(Vector3::new(0.8, 0.1, 0.1), 0.5, false);
 
-    let bottom_plane = Object::new(
+    let bottom_plane = Object::new_old(
         Plane::new(2., 2.),
         Similarity3::new(
             Vector3::new(0., -1., 0.),
@@ -41,7 +41,7 @@ fn main() {
         white_material.clone(),
     );
 
-    let left_plane = Object::new(
+    let left_plane = Object::new_old(
         Plane::new(2., 2.),
         Similarity3::new(
             Vector3::new(-1., 0., 0.),
@@ -51,25 +51,25 @@ fn main() {
         red_material,
     );
 
-    let right_plane = Object::new(
+    let right_plane = Object::new_old(
         Plane::new(2., 2.),
         Similarity3::new(Vector3::new(1., 0., 0.), Vector3::new(0., TAU / 4., 0.), 1.),
         green_material,
     );
 
-    let top_plane = Object::new(
+    let top_plane = Object::new_old(
         Plane::new(2., 2.),
         Similarity3::new(Vector3::new(0., 1., 0.), Vector3::new(TAU / 4., 0., 0.), 1.),
         white_material.clone(),
     );
 
-    let back_plane = Object::new(
+    let back_plane = Object::new_old(
         Plane::new(2., 2.),
         Similarity3::new(Vector3::new(0., 0., -1.), Vector3::new(0., 0., 0.), 1.),
         white_material.clone(),
     );
 
-    let box_a = Object::new(
+    let box_a = Object::new_old(
         Cuboid::new(0.4, 0.4, 0.4),
         Similarity3::new(
             Vector3::new(-0.25, -0.7, -0.2),
@@ -79,7 +79,7 @@ fn main() {
         Material::new(Vector3::new(0.7, 0.8, 0.6), 0.5, false),
     );
 
-    let sphere_a: Object = Object::new(
+    let sphere_a: Object = Object::new_old(
         Sphere::new(1.0),
         Similarity3::new(
             Vector3::new(-0.25, -0.175, -0.2),
@@ -89,13 +89,13 @@ fn main() {
         Material::new_reflective(Vector3::new(0.9, 0.9, 0.9), 0., 0.5, 1.4),
     );
 
-    let sphere_b: Object = Object::new(
+    let sphere_b: Object = Object::new_old(
         Sphere::new(1.0),
         Similarity3::new(Vector3::new(0.5, -0.7, 0.2), Vector3::new(0., 0., 0.), 0.3),
         Material::new_reflective(Vector3::new(0.4, 0.6, 0.9), 0.3, 0.5, 1.),
     );
 
-    let top_light = Object::new(
+    let top_light = Object::new_old(
         Plane::new(0.25, 0.25),
         //Sphere::new(1.),
         //Cuboid::new(1.0, 1.0, 0.2),

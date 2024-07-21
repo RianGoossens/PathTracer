@@ -15,7 +15,7 @@ fn main() {
     let aperture = PinholeAperture; //,GaussianAperture::new(0.5);
     let camera = Camera::new_at_origin(300, 300, 55., 1.0, 100.0, aperture, 5.);
 
-    let plane = Object::new(
+    let plane = Object::new_old(
         Plane::new(2., 2.),
         Similarity3::new(
             Vector3::new(0., 0., -5.),
@@ -25,13 +25,13 @@ fn main() {
         Material::new(Vector3::new(1., 1., 1.), 0.05, false),
     );
 
-    let sphere = Object::new(
+    let sphere = Object::new_old(
         Sphere::new(1.),
         Similarity3::new(Vector3::new(0., -5.8, -6.), Vector3::zeros(), 5.),
         Material::new(Vector3::new(1., 0., 1.), 1., false),
     );
 
-    let light = Object::new(
+    let light = Object::new_old(
         Sphere::new(1.),
         Similarity3::new(Vector3::new(0., 2., -4.), Vector3::zeros(), 1.),
         Material::new(Vector3::new(1., 1., 1.), 1.0, true),

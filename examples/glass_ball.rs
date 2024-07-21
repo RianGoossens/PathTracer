@@ -13,7 +13,7 @@ use nalgebra as na;
 
 use na::{Similarity3, Vector3};
 
-const NUM_SAMPLES: usize = 100;
+const NUM_SAMPLES: usize = 1000;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -34,7 +34,7 @@ fn main() {
         Vector3::new(0.6, 0.6, 0.8) * 0.5,
         0.25,
     );
-    let bottom_plane = Object::new(
+    let bottom_plane = Object::new_old(
         Plane::new(10., 10.),
         Similarity3::new(Vector3::new(0., 0., 0.), Vector3::new(0., 0., 0.), 1.),
         Material::new_reflective(checkerboard, 1., 0., 0.),
@@ -42,13 +42,13 @@ fn main() {
 
     let ior = 1.5;
 
-    let left_cuboid = Object::new(
+    let left_cuboid = Object::new_old(
         Cuboid::new(1., 1., 0.25),
         Similarity3::new(Vector3::new(-0.6, 0., 1.), Vector3::new(0., 0., 0.), 0.75),
         Material::new_reflective(Vector3::new(0.9, 0.99, 0.9), 0., 0.9, ior),
     );
 
-    let right_cuboid = Object::new(
+    let right_cuboid = Object::new_old(
         Cuboid::new(1., 1., 0.25),
         Similarity3::new(
             Vector3::new(0.6, 0., 1.),
@@ -58,25 +58,25 @@ fn main() {
         Material::new_reflective(Vector3::new(0.9, 0.99, 0.9), 0., 0.9, ior),
     );
 
-    let sphere = Object::new(
+    let sphere = Object::new_old(
         Sphere::new(0.5),
         Similarity3::new(Vector3::new(0., 1., 1.), Vector3::new(0., 0., 0.), 1.),
         Material::new_reflective(Vector3::new(0.9, 0.99, 0.9), 0., 0.9, ior),
     );
 
-    let inner_sphere = Object::new(
+    let inner_sphere = Object::new_old(
         Sphere::new(0.5),
         Similarity3::new(Vector3::new(0., 1., 1.), Vector3::new(0., 0., 0.), 0.9),
         Material::new_reflective(Vector3::new(1., 1., 1.), 0., 0.9, 1. / ior),
     );
 
-    let light = Object::new(
+    let light = Object::new_old(
         Sphere::new(1.),
         Similarity3::new(Vector3::new(1.0, 1.0, 3.), Vector3::new(0., 0., 0.), 1.0),
         Material::new(Vector3::new(1.0, 1.0, 1.0) * 5.0, 1., true),
     );
 
-    let environment = Object::new(
+    let environment = Object::new_old(
         Sphere::new(5.),
         Similarity3::new(Vector3::new(0., 0., 0.), Vector3::zeros(), 1.),
         Material::new_reflective(Vector3::new(1., 1., 1.) * 0.75, 1., 0.9, 1.),

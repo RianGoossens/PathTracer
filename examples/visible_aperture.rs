@@ -18,7 +18,7 @@ fn main() {
 
     let sphere_shape = Sphere::new(1.);
 
-    let light = Object::new(
+    let light = Object::new_old(
         sphere_shape,
         Similarity3::new(Vector3::new(0., 0., -5.), Vector3::zeros(), 0.25),
         Material::new(Vector3::new(3., 3., 3.), 0., true),

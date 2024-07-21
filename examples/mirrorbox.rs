@@ -1,10 +1,8 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::{GaussianAperture},
-    camera::CameraSettings,
-    renderer::{RecursiveBDPT},
-    shape::Cuboid, Camera, Material, Object, Renderer, Scene, Sphere,
+    aperture::GaussianAperture, camera::CameraSettings, renderer::RecursiveBDPT, shape::Cuboid,
+    Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -29,13 +27,13 @@ fn main() {
 
     let mirror_material = Material::new(Vector3::new(0.5, 0.8, 0.5), 0., false);
 
-    let cube = Object::new(
+    let cube = Object::new_old(
         Cuboid::new(2., 2., 2.),
         Similarity3::new(Vector3::new(0., 0., 0.), Vector3::new(0., 0., 0.), 1.),
         mirror_material,
     );
 
-    let light = Object::new(
+    let light = Object::new_old(
         Sphere::new(1.),
         Similarity3::new(Vector3::new(0., 0.5, 0.0), Vector3::new(0., 0., 0.), 0.2),
         Material::new(Vector3::new(1., 1., 1.) * 1., 1., true),

@@ -31,7 +31,7 @@ fn main() {
 
     let floor_material = Material::new(Vector3::new(0.8, 0.6, 0.6), 1., false);
 
-    let bottom_plane = Object::new(
+    let bottom_plane = Object::new_old(
         Plane::new(10., 10.),
         Similarity3::new(
             Vector3::new(0., -1., 0.),
@@ -41,7 +41,7 @@ fn main() {
         floor_material.clone(),
     );
 
-    let cylinder = Object::new(
+    let cylinder = Object::new_old(
         Cylinder::new(1.0, 0.8),
         Similarity3::new(
             Vector3::new(0., -0.75, 0.),
@@ -51,7 +51,7 @@ fn main() {
         Material::new_reflective(Vector3::new(0.99, 0.1, 0.1), 0., 0., 1.),
     );
 
-    let top_light = Object::new(
+    let top_light = Object::new_old(
         Sphere::new(1.0),
         Similarity3::new(Vector3::new(1.5, 1.0, 2.), Vector3::new(0., 0., 0.), 1.0),
         Material::new(Vector3::new(1.0, 1.0, 1.0) * 1.0, 1., true),
