@@ -1,5 +1,3 @@
-use std::f64::INFINITY;
-
 use crate::{Ray, Shape};
 
 use nalgebra as na;
@@ -26,7 +24,7 @@ impl Cuboid {
 
 impl Shape for Cuboid {
     fn intersection_distance(&self, ray: &Ray) -> Option<f64> {
-        let mut result = INFINITY;
+        let mut result = f64::INFINITY;
 
         let ts = [
             (-ray.origin.x - self.width / 2.) / ray.direction.x,

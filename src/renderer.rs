@@ -14,20 +14,14 @@ pub use depth_renderer::{DepthRenderMode, DepthRenderer};
 pub use recursive_bdpt::RecursiveBDPT;
 pub use simple_renderer::SimpleRenderer;
 
-pub trait Renderer: Send + Sync {
+pub trait Renderer: Send + Sync + Sized {
     fn render(&self, scene: &Scene) -> RenderBuffer;
 
-    fn iterative(self, num_samples: usize) -> IterativeRenderer<Self>
-    where
-        Self: Sized,
-    {
+    fn iterative(self, num_samples: usize) -> IterativeRenderer<Self> {
         IterativeRenderer::new(self, num_samples)
     }
 
-    fn parallel(self, num_samples: usize) -> ParallelRenderer<Self>
-    where
-        Self: Sized,
-    {
+    fn parallel(self, num_samples: usize) -> ParallelRenderer<Self> {
         ParallelRenderer::new(self, num_samples)
     }
 }
