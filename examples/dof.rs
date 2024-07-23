@@ -1,13 +1,13 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::RegularPolygonAperture, camera::CameraSettings, renderer::RecursiveBDPT, Camera,
-    Inverted, Material, Object, Renderer, Scene, Sphere,
+    aperture::RegularPolygonAperture, camera::CameraSettings, object::ObjectDefinition,
+    renderer::RecursiveBDPT, Camera, Inverted, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
-use na::{Similarity3, Vector3};
+use na::Vector3;
 
 const NUM_SAMPLES: usize = 100;
 
@@ -25,41 +25,53 @@ fn main() {
 
     let sphere_shape = Sphere::new(1.);
 
-    let sphere_a = Object::new_old(
-        sphere_shape,
-        Similarity3::new(Vector3::new(1.5, -0.5, 1.), Vector3::zeros(), 1.),
-        Material::new(Vector3::new(0.8, 0.1, 0.1), 0.9, false),
-    );
+    let sphere_a = Object::new(ObjectDefinition {
+        shape: Box::new(sphere_shape),
+        material: Material::new(Vector3::new(0.8, 0.1, 0.1), 0.9, false),
+        x: 1.5,
+        y: -0.5,
+        z: 1.0,
+        ..Default::default()
+    });
 
-    let sphere_b = Object::new_old(
-        sphere_shape,
-        Similarity3::new(Vector3::new(1., 0., 0.), Vector3::zeros(), 1.),
-        Material::new(Vector3::new(0.1, 0.8, 0.1), 0.9, false),
-    );
+    let sphere_b = Object::new(ObjectDefinition {
+        shape: Box::new(sphere_shape),
+        material: Material::new(Vector3::new(0.1, 0.8, 0.1), 0.9, false),
+        x: 1.0,
+        ..Default::default()
+    });
 
-    let sphere_c = Object::new_old(
-        sphere_shape,
-        Similarity3::new(Vector3::new(0.5, 0.5, -1.), Vector3::zeros(), 1.),
-        Material::new(Vector3::new(0.1, 0.1, 0.8), 0.9, false),
-    );
+    let sphere_c = Object::new(ObjectDefinition {
+        shape: Box::new(sphere_shape),
+        material: Material::new(Vector3::new(0.1, 0.1, 0.8), 0.9, false),
+        x: 0.5,
+        y: 0.5,
+        z: -1.0,
+        ..Default::default()
+    });
 
-    let light = Object::new_old(
-        sphere_shape,
-        Similarity3::new(Vector3::new(-1.5, 0., 0.), Vector3::zeros(), 0.5),
-        Material::new(Vector3::new(1., 1., 1.), 1.0, true),
-    );
+    let light = Object::new(ObjectDefinition {
+        shape: Box::new(sphere_shape),
+        material: Material::new(Vector3::new(1.0, 1.0, 1.0), 1.0, true),
+        x: -1.5,
+        scale: 0.5,
+        ..Default::default()
+    });
 
-    let big_sphere = Object::new_old(
-        Sphere::new(1.),
-        Similarity3::new(Vector3::new(0., -7.5, 0.), Vector3::zeros(), 6.1),
-        Material::new(Vector3::new(0.95, 1., 0.95), 0.5, false),
-    );
+    let big_sphere = Object::new(ObjectDefinition {
+        shape: Box::new(Sphere::new(1.0)),
+        material: Material::new(Vector3::new(0.95, 1.0, 0.95), 0.5, false),
+        y: -7.5,
+        scale: 6.1,
+        ..Default::default()
+    });
 
-    let environment = Object::new_old(
-        Inverted(Sphere::new(1.)),
-        Similarity3::new(Vector3::new(0., 0., 0.), Vector3::zeros(), 6.1),
-        Material::new(Vector3::new(1., 1., 1.) * 0.3, 1., false),
-    );
+    let environment = Object::new(ObjectDefinition {
+        shape: Box::new(Inverted(Sphere::new(1.0))),
+        material: Material::new(Vector3::new(1.0, 1.0, 1.0) * 0.3, 1.0, false),
+        scale: 6.1,
+        ..Default::default()
+    });
 
     let scene = Scene::new(
         camera,

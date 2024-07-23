@@ -7,7 +7,7 @@ use path_tracer::{
 
 use nalgebra as na;
 
-use na::{Similarity3, Vector3};
+use na::Vector3;
 
 const NUM_SAMPLES: usize = 100;
 const SIZE: u32 = 300;
@@ -34,43 +34,41 @@ fn main() {
     });
 
     let ior = 3.;
-    let sphere_a = Object::new_old(
-        Sphere::new(0.3),
-        Similarity3::new(Vector3::new(0.6, -0.5, 0.3), Vector3::zeros(), 1.),
-        Material::new_reflective(Vector3::new(0.9, 0.1, 0.1), 0.2, 0.25, ior),
-    );
+    let sphere_a = Object::new(ObjectDefinition {
+        shape: Box::new(Sphere::new(0.3)),
+        material: Material::new_reflective(Vector3::new(0.9, 0.1, 0.1), 0.2, 0.25, ior),
+        x: 0.6,
+        y: -0.5,
+        z: 0.3,
+        ..Default::default()
+    });
 
-    let sphere_b = Object::new_old(
-        Sphere::new(0.3),
-        Similarity3::new(Vector3::new(0., 0., 0.3), Vector3::zeros(), 1.),
-        Material::new_reflective(Vector3::new(0.1, 0.9, 0.1), 0., 0.5, ior),
-    );
+    let sphere_b = Object::new(ObjectDefinition {
+        shape: Box::new(Sphere::new(0.3)),
+        material: Material::new_reflective(Vector3::new(0.1, 0.9, 0.1), 0., 0.5, ior),
+        z: 0.3,
+        ..Default::default()
+    });
 
-    let sphere_c = Object::new_old(
-        Sphere::new(0.3),
-        Similarity3::new(Vector3::new(-0.6, -0.5, 0.3), Vector3::zeros(), 1.),
-        Material::new_reflective(Vector3::new(0.1, 0.1, 0.9), 0.2, 0.75, ior),
-    );
+    let sphere_c = Object::new(ObjectDefinition {
+        shape: Box::new(Sphere::new(0.3)),
+        material: Material::new_reflective(Vector3::new(0.1, 0.1, 0.9), 0.2, 0.75, ior),
+        x: -0.6,
+        y: -0.5,
+        z: 0.3,
+        ..Default::default()
+    });
 
-    let light = Object::new_old(
-        Sphere::new(1.),
-        Similarity3::new(Vector3::new(0., -4., 2.5), Vector3::zeros(), 1.),
-        Material::Emissive {
+    let light = Object::new(ObjectDefinition {
+        shape: Box::new(Sphere::new(1.)),
+        material: Material::Emissive {
             color: Vector3::new(1., 1., 1.) * 1.,
         },
-    );
-
-    let _light_enclosure = Object::new_old(
-        Sphere::new(0.55),
-        Similarity3::new(Vector3::new(0., -1., 1.), Vector3::zeros(), 1.),
-        Material::new_reflective(Vector3::new(1., 1., 1.), 0., 1., 2.),
-    );
-
-    let _environment = Object::new_old(
-        Sphere::new(5.),
-        Similarity3::new(Vector3::new(0., 0., 0.), Vector3::zeros(), 1.),
-        Material::new_reflective(Vector3::new(1., 1., 1.) * 0.1, 1.0, 0.5, 1.),
-    );
+        x: 0.,
+        y: -4.,
+        z: 2.5,
+        ..Default::default()
+    });
 
     let scene = Scene::new(camera, vec![plane, sphere_a, sphere_b, sphere_c, light]);
 

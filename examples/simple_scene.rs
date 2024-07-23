@@ -1,13 +1,13 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::PinholeAperture, camera::CameraSettings, renderer::RecursiveBDPT, Camera, Material,
-    Object, Renderer, Scene, Sphere,
+    aperture::PinholeAperture, camera::CameraSettings, object::ObjectDefinition,
+    renderer::RecursiveBDPT, Camera, Material, Object, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
-use na::{Similarity3, Vector3};
+use na::Vector3;
 
 const NUM_SAMPLES: usize = 100;
 
@@ -24,19 +24,25 @@ fn main() {
     };
     let camera = Camera::new(camera_settings, aperture, 5.);
 
-    let sphere: Object = Object::new_old(
-        Sphere::new(1.),
-        Similarity3::new(Vector3::new(1., 1., 0.), Vector3::zeros(), 1.),
-        Material::new(Vector3::new(0.1, 0.8, 0.1), 1., false),
-    );
+    let sphere = Object::new(ObjectDefinition {
+        shape: Box::new(Sphere::new(1.)),
+        material: Material::new(Vector3::new(0.1, 0.8, 0.1), 1., false),
+        x: 1.,
+        y: 1.,
+        scale: 1.,
+        ..Default::default()
+    });
 
-    let light = Object::new_old(
-        Sphere::new(1.),
-        Similarity3::new(Vector3::new(1.0, -1.5, 0.), Vector3::zeros(), 1.),
-        Material::Emissive {
+    let light = Object::new(ObjectDefinition {
+        shape: Box::new(Sphere::new(1.)),
+        material: Material::Emissive {
             color: Vector3::new(1., 1., 1.) * 1.,
         },
-    );
+        x: 1.0,
+        y: -1.5,
+        scale: 1.,
+        ..Default::default()
+    });
 
     let scene = Scene::new(camera, vec![sphere, light]);
 
@@ -47,7 +53,6 @@ fn main() {
     println!("Rendering took {:?}", start.elapsed());
 
     let image = render_buffer.srgb().to_image_u8();
-
     image.save("image.png").expect("Could not save image");
 
     let image = render_buffer.to_image_f32();
