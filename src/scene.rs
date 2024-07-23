@@ -2,7 +2,7 @@ use nalgebra::Point3;
 use rand::{thread_rng, Rng};
 use rand_distr::WeightedAliasIndex;
 
-use crate::{shape::IntersectionInfo, Camera, Material, Object, Ray};
+use crate::{object::ObjectDefinition, shape::IntersectionInfo, Camera, Material, Object, Ray};
 
 pub struct Scene {
     pub camera: Camera,
@@ -12,7 +12,8 @@ pub struct Scene {
 }
 
 impl Scene {
-    pub fn new(camera: Camera, objects: Vec<Object>) -> Self {
+    pub fn new(camera: Camera, objects: Vec<ObjectDefinition>) -> Self {
+        let objects: Vec<Object> = objects.into_iter().map(Object::new).collect();
         let light_indices: Vec<usize> = objects
             .iter()
             .enumerate()

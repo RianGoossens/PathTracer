@@ -3,14 +3,15 @@ use std::{f64::consts::TAU, time::Instant};
 use path_tracer::{
     aperture::RegularPolygonAperture,
     camera::CameraSettings,
+    object::ObjectDefinition,
     renderer::RecursiveBDPT,
     shape::{Cuboid, Plane},
-    Camera, Material, Object, Renderer, Scene, Sphere,
+    Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
-use na::{Similarity3, Vector3};
+use na::Vector3;
 
 const NUM_SAMPLES: usize = 10;
 const SIZE: u32 = 300;
@@ -31,82 +32,83 @@ fn main() {
     let green_material = Material::new(Vector3::new(0.1, 0.8, 0.1), 0.5, false);
     let red_material = Material::new(Vector3::new(0.8, 0.1, 0.1), 0.5, false);
 
-    let bottom_plane = Object::new(
-        Plane::new(2., 2.),
-        Similarity3::new(
-            Vector3::new(0., -1., 0.),
-            Vector3::new(TAU / 4., 0., 0.),
-            1.,
-        ),
-        white_material.clone(),
-    );
+    let bottom_plane = ObjectDefinition {
+        shape: Box::new(Plane::new(2., 2.)),
+        material: white_material.clone(),
+        y: -1.,
+        rx: TAU / 4.,
+        ..Default::default()
+    };
 
-    let left_plane = Object::new(
-        Plane::new(2., 2.),
-        Similarity3::new(
-            Vector3::new(-1., 0., 0.),
-            Vector3::new(0., TAU / 4., 0.),
-            1.,
-        ),
-        red_material,
-    );
+    let left_plane = ObjectDefinition {
+        shape: Box::new(Plane::new(2., 2.)),
+        material: red_material,
+        x: -1.,
+        ry: TAU / 4.,
+        ..Default::default()
+    };
 
-    let right_plane = Object::new(
-        Plane::new(2., 2.),
-        Similarity3::new(Vector3::new(1., 0., 0.), Vector3::new(0., TAU / 4., 0.), 1.),
-        green_material,
-    );
+    let right_plane = ObjectDefinition {
+        shape: Box::new(Plane::new(2., 2.)),
+        material: green_material,
+        x: 1.,
+        ry: TAU / 4.,
+        ..Default::default()
+    };
 
-    let top_plane = Object::new(
-        Plane::new(2., 2.),
-        Similarity3::new(Vector3::new(0., 1., 0.), Vector3::new(TAU / 4., 0., 0.), 1.),
-        white_material.clone(),
-    );
+    let top_plane = ObjectDefinition {
+        shape: Box::new(Plane::new(2., 2.)),
+        material: white_material.clone(),
+        y: 1.,
+        rx: TAU / 4.,
+        ..Default::default()
+    };
 
-    let back_plane = Object::new(
-        Plane::new(2., 2.),
-        Similarity3::new(Vector3::new(0., 0., -1.), Vector3::new(0., 0., 0.), 1.),
-        white_material.clone(),
-    );
+    let back_plane = ObjectDefinition {
+        shape: Box::new(Plane::new(2., 2.)),
+        material: white_material.clone(),
+        z: -1.,
+        ..Default::default()
+    };
 
-    let box_a = Object::new(
-        Cuboid::new(0.4, 0.4, 0.4),
-        Similarity3::new(
-            Vector3::new(-0.25, -0.7, -0.2),
-            Vector3::new(0., TAU / 10., 0.),
-            1.5,
-        ),
-        Material::new(Vector3::new(0.7, 0.8, 0.6), 0.5, false),
-    );
+    let box_a = ObjectDefinition {
+        shape: Box::new(Cuboid::new(0.4, 0.4, 0.4)),
+        material: Material::new(Vector3::new(0.7, 0.8, 0.6), 0.5, false),
+        x: -0.25,
+        y: -0.7,
+        z: -0.2,
+        ry: TAU / 10.,
+        scale: 1.5,
+        ..Default::default()
+    };
 
-    let sphere_a: Object = Object::new(
-        Sphere::new(1.0),
-        Similarity3::new(
-            Vector3::new(-0.25, -0.175, -0.2),
-            Vector3::new(0., 0., 0.),
-            0.25,
-        ),
-        Material::new_reflective(Vector3::new(0.9, 0.9, 0.9), 0., 0.5, 1.4),
-    );
+    let sphere_a = ObjectDefinition {
+        shape: Box::new(Sphere::new(1.0)),
+        material: Material::new_reflective(Vector3::new(0.9, 0.9, 0.9), 0., 0.5, 1.4),
+        x: -0.25,
+        y: -0.175,
+        z: -0.2,
+        scale: 0.25,
+        ..Default::default()
+    };
 
-    let sphere_b: Object = Object::new(
-        Sphere::new(1.0),
-        Similarity3::new(Vector3::new(0.5, -0.7, 0.2), Vector3::new(0., 0., 0.), 0.3),
-        Material::new_reflective(Vector3::new(0.4, 0.6, 0.9), 0.3, 0.5, 1.),
-    );
+    let sphere_b = ObjectDefinition {
+        shape: Box::new(Sphere::new(1.0)),
+        material: Material::new_reflective(Vector3::new(0.4, 0.6, 0.9), 0.3, 0.5, 1.),
+        x: 0.5,
+        y: -0.7,
+        z: 0.2,
+        scale: 0.3,
+        ..Default::default()
+    };
 
-    let top_light = Object::new(
-        Plane::new(0.25, 0.25),
-        //Sphere::new(1.),
-        //Cuboid::new(1.0, 1.0, 0.2),
-        //Cylinder::new(1., 0.2),
-        Similarity3::new(
-            Vector3::new(0., 0.995, 0.),
-            Vector3::new(-TAU / 4., 0., 0.),
-            1.,
-        ),
-        Material::new(Vector3::new(1.0, 1.0, 0.5), 1., true),
-    );
+    let top_light = ObjectDefinition {
+        shape: Box::new(Plane::new(0.25, 0.25)),
+        material: Material::new(Vector3::new(1.0, 1.0, 0.5), 1., true),
+        y: 0.995,
+        rx: -TAU / 4.,
+        ..Default::default()
+    };
 
     let scene = Scene::new(
         camera,

@@ -6,11 +6,13 @@ use crate::Ray;
 
 mod cuboid;
 mod cylinder;
+mod empty;
 mod plane;
 mod sphere;
 
 pub use cuboid::Cuboid;
 pub use cylinder::Cylinder;
+pub use empty::Empty;
 pub use plane::Plane;
 pub use sphere::Sphere;
 

@@ -1,15 +1,13 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::{GaussianAperture},
-    camera::CameraSettings,
-    renderer::{RecursiveBDPT},
-    shape::Cuboid, Camera, Material, Object, Renderer, Scene, Sphere,
+    aperture::GaussianAperture, camera::CameraSettings, object::ObjectDefinition,
+    renderer::RecursiveBDPT, shape::Cuboid, Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
-use na::{Similarity3, Vector3};
+use na::Vector3;
 
 const NUM_SAMPLES: usize = 10;
 
@@ -29,17 +27,19 @@ fn main() {
 
     let mirror_material = Material::new(Vector3::new(0.5, 0.8, 0.5), 0., false);
 
-    let cube = Object::new(
-        Cuboid::new(2., 2., 2.),
-        Similarity3::new(Vector3::new(0., 0., 0.), Vector3::new(0., 0., 0.), 1.),
-        mirror_material,
-    );
+    let cube = ObjectDefinition {
+        shape: Box::new(Cuboid::new(2., 2., 2.)),
+        material: mirror_material,
+        ..Default::default()
+    };
 
-    let light = Object::new(
-        Sphere::new(1.),
-        Similarity3::new(Vector3::new(0., 0.5, 0.0), Vector3::new(0., 0., 0.), 0.2),
-        Material::new(Vector3::new(1., 1., 1.) * 1., 1., true),
-    );
+    let light = ObjectDefinition {
+        shape: Box::new(Sphere::new(1.)),
+        y: 0.5,
+        scale: 0.2,
+        material: Material::new(Vector3::new(1., 1., 1.) * 1., 1., true),
+        ..Default::default()
+    };
 
     let scene = Scene::new(camera, vec![cube, light]);
 

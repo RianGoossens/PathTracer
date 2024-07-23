@@ -1,13 +1,13 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::RegularPolygonAperture, renderer::ParallelRenderer, BackwardRenderer, Camera,
-    Material, Object, Renderer, Scene, Sphere,
+    aperture::RegularPolygonAperture, object::ObjectDefinition, renderer::ParallelRenderer,
+    BackwardRenderer, Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
-use na::{Similarity3, Vector3};
+use na::Vector3;
 
 const NUM_SAMPLES: usize = 1000;
 
@@ -18,11 +18,13 @@ fn main() {
 
     let sphere_shape = Sphere::new(1.);
 
-    let light = Object::new(
-        sphere_shape,
-        Similarity3::new(Vector3::new(0., 0., -5.), Vector3::zeros(), 0.25),
-        Material::new(Vector3::new(3., 3., 3.), 0., true),
-    );
+    let light = ObjectDefinition {
+        shape: Box::new(sphere_shape),
+        material: Material::new(Vector3::new(3., 3., 3.), 0., true),
+        z: -5.,
+        scale: 0.25,
+        ..Default::default()
+    };
 
     let scene = Scene::new(camera, vec![light]);
 

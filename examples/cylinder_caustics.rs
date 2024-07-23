@@ -3,14 +3,15 @@ use std::{f64::consts::TAU, time::Instant};
 use path_tracer::{
     aperture::RegularPolygonAperture,
     camera::CameraSettings,
+    object::ObjectDefinition,
     renderer::RecursiveBDPT,
     shape::{Cylinder, Plane},
-    Camera, Material, Object, Renderer, Scene, Sphere,
+    Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
-use na::{Similarity3, Vector3};
+use na::Vector3;
 
 const NUM_SAMPLES: usize = 500;
 const SIZE: u32 = 300;
@@ -29,33 +30,32 @@ fn main() {
     };
     let camera = Camera::new(camera_settings, aperture, 5.);
 
-    let floor_material = Material::new(Vector3::new(0.8, 0.6, 0.6), 1., false);
+    let floor_material = Material::new(Vector3::new(0.4, 0.3, 0.3), 1., false);
 
-    let bottom_plane = Object::new(
-        Plane::new(10., 10.),
-        Similarity3::new(
-            Vector3::new(0., -1., 0.),
-            Vector3::new(TAU / 4., 0., 0.),
-            1.,
-        ),
-        floor_material.clone(),
-    );
+    let bottom_plane = ObjectDefinition {
+        shape: Box::new(Plane::new(10., 10.)),
+        material: floor_material.clone(),
+        y: -1.,
+        rx: TAU / 4.,
+        ..Default::default()
+    };
 
-    let cylinder = Object::new(
-        Cylinder::new(1.0, 0.8),
-        Similarity3::new(
-            Vector3::new(0., -0.75, 0.),
-            Vector3::new(-TAU / 4., 0., 0.),
-            1.,
-        ),
-        Material::new_reflective(Vector3::new(0.99, 0.1, 0.1), 0., 0., 1.),
-    );
+    let cylinder = ObjectDefinition {
+        shape: Box::new(Cylinder::new(1.0, 0.8)),
+        material: Material::new_reflective(Vector3::new(0.99, 0.1, 0.1), 0., 0., 1.),
+        y: -0.75,
+        rx: -TAU / 4.,
+        ..Default::default()
+    };
 
-    let top_light = Object::new(
-        Sphere::new(1.0),
-        Similarity3::new(Vector3::new(1.5, 1.0, 2.), Vector3::new(0., 0., 0.), 1.0),
-        Material::new(Vector3::new(1.0, 1.0, 1.0) * 1.0, 1., true),
-    );
+    let top_light = ObjectDefinition {
+        shape: Box::new(Sphere::new(0.5)),
+        material: Material::new(Vector3::new(1.0, 1.0, 1.0) * 2., 1., true),
+        x: 1.5,
+        y: 1.0,
+        z: 2.0,
+        ..Default::default()
+    };
 
     let scene = Scene::new(camera, vec![bottom_plane, cylinder, top_light]);
 
