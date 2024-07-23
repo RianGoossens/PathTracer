@@ -23,5 +23,8 @@ A bi-directional path tracer written in Rust.
 - [X] PDF and SDF approximations for better roughness
 - [X] Transitive materials
 - [X] Refraction
+- [ ] Triangles
+- [ ] Shareable Materials
+- [ ] Acceleration Structure(s)
 - [ ] Emissive as parameter
 - [ ] Find a good name
