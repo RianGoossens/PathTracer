@@ -21,7 +21,7 @@ A bi-directional path tracer written in Rust.
 - [X] Planes
 - [X] Cubes
 - [X] PDF and SDF approximations for better roughness
-- [ ] Transitive materials
+- [X] Transitive materials
+- [X] Refraction
 - [ ] Emissive as parameter
-- [ ] Refraction
 - [ ] Find a good name
