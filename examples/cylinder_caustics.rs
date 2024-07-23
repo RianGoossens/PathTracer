@@ -6,7 +6,7 @@ use path_tracer::{
     object::ObjectDefinition,
     renderer::RecursiveBDPT,
     shape::{Cylinder, Plane},
-    Camera, Material, Object, Renderer, Scene, Sphere,
+    Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -32,30 +32,30 @@ fn main() {
 
     let floor_material = Material::new(Vector3::new(0.4, 0.3, 0.3), 1., false);
 
-    let bottom_plane = Object::new(ObjectDefinition {
+    let bottom_plane = ObjectDefinition {
         shape: Box::new(Plane::new(10., 10.)),
         material: floor_material.clone(),
         y: -1.,
         rx: TAU / 4.,
         ..Default::default()
-    });
+    };
 
-    let cylinder = Object::new(ObjectDefinition {
+    let cylinder = ObjectDefinition {
         shape: Box::new(Cylinder::new(1.0, 0.8)),
         material: Material::new_reflective(Vector3::new(0.99, 0.1, 0.1), 0., 0., 1.),
         y: -0.75,
         rx: -TAU / 4.,
         ..Default::default()
-    });
+    };
 
-    let top_light = Object::new(ObjectDefinition {
+    let top_light = ObjectDefinition {
         shape: Box::new(Sphere::new(0.5)),
         material: Material::new(Vector3::new(1.0, 1.0, 1.0) * 2., 1., true),
         x: 1.5,
         y: 1.0,
         z: 2.0,
         ..Default::default()
-    });
+    };
 
     let scene = Scene::new(camera, vec![bottom_plane, cylinder, top_light]);
 

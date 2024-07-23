@@ -2,7 +2,7 @@ use std::{f64::consts::TAU, time::Instant};
 
 use path_tracer::{
     aperture::PinholeAperture, camera::CameraSettings, object::ObjectDefinition,
-    renderer::RecursiveBDPT, shape::Cuboid, Camera, Material, Object, Renderer, Scene, Sphere,
+    renderer::RecursiveBDPT, shape::Cuboid, Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -26,40 +26,40 @@ fn main() {
     };
     let camera = Camera::new(camera_settings, PinholeAperture, 1.);
 
-    let plane = Object::new(ObjectDefinition {
+    let plane = ObjectDefinition {
         shape: Box::new(Cuboid::new(6., 6., 1.)),
         material: Material::new_reflective(Vector3::new(1., 1., 1.) * 0.9, 1., 0., 1.),
         z: -0.6,
         ..Default::default()
-    });
+    };
 
     let ior = 3.;
-    let sphere_a = Object::new(ObjectDefinition {
+    let sphere_a = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
         material: Material::new_reflective(Vector3::new(0.9, 0.1, 0.1), 0.2, 0.25, ior),
         x: 0.6,
         y: -0.5,
         z: 0.3,
         ..Default::default()
-    });
+    };
 
-    let sphere_b = Object::new(ObjectDefinition {
+    let sphere_b = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
         material: Material::new_reflective(Vector3::new(0.1, 0.9, 0.1), 0., 0.5, ior),
         z: 0.3,
         ..Default::default()
-    });
+    };
 
-    let sphere_c = Object::new(ObjectDefinition {
+    let sphere_c = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
         material: Material::new_reflective(Vector3::new(0.1, 0.1, 0.9), 0.2, 0.75, ior),
         x: -0.6,
         y: -0.5,
         z: 0.3,
         ..Default::default()
-    });
+    };
 
-    let light = Object::new(ObjectDefinition {
+    let light = ObjectDefinition {
         shape: Box::new(Sphere::new(1.)),
         material: Material::Emissive {
             color: Vector3::new(1., 1., 1.) * 1.,
@@ -68,7 +68,7 @@ fn main() {
         y: -4.,
         z: 2.5,
         ..Default::default()
-    });
+    };
 
     let scene = Scene::new(camera, vec![plane, sphere_a, sphere_b, sphere_c, light]);
 

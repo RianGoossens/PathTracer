@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use path_tracer::{
     aperture::PinholeAperture, camera::CameraSettings, object::ObjectDefinition,
-    renderer::RecursiveBDPT, Camera, Material, Object, Renderer, Scene, Sphere,
+    renderer::RecursiveBDPT, Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -24,16 +24,16 @@ fn main() {
     };
     let camera = Camera::new(camera_settings, aperture, 5.);
 
-    let sphere = Object::new(ObjectDefinition {
+    let sphere = ObjectDefinition {
         shape: Box::new(Sphere::new(1.)),
         material: Material::new(Vector3::new(0.1, 0.8, 0.1), 1., false),
         x: 1.,
         y: 1.,
         scale: 1.,
         ..Default::default()
-    });
+    };
 
-    let light = Object::new(ObjectDefinition {
+    let light = ObjectDefinition {
         shape: Box::new(Sphere::new(1.)),
         material: Material::Emissive {
             color: Vector3::new(1., 1., 1.) * 1.,
@@ -42,7 +42,7 @@ fn main() {
         y: -1.5,
         scale: 1.,
         ..Default::default()
-    });
+    };
 
     let scene = Scene::new(camera, vec![sphere, light]);
 

@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use path_tracer::{
     aperture::GaussianAperture, object::ObjectDefinition, renderer::RecursiveBDPT, Camera,
-    Inverted, Material, Object, Renderer, Scene, Sphere,
+    Inverted, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -17,39 +17,39 @@ fn main() {
 
     let sphere_shape = Sphere::new(1.);
 
-    let sphere_a = Object::new(ObjectDefinition {
+    let sphere_a = ObjectDefinition {
         shape: Box::new(sphere_shape),
         material: Material::new(Vector3::new(0.8, 0.6, 0.7), 0.01, false),
         x: 1.5,
         y: 1.,
         z: -5.,
         ..Default::default()
-    });
+    };
 
-    let sphere_b = Object::new(ObjectDefinition {
+    let sphere_b = ObjectDefinition {
         shape: Box::new(sphere_shape),
         material: Material::new(Vector3::new(0.4, 0.85, 0.3), 0.9, false),
         x: -1.5,
         y: 1.,
         z: -5.,
         ..Default::default()
-    });
+    };
 
-    let environment = Object::new(ObjectDefinition {
+    let environment = ObjectDefinition {
         shape: Box::new(Inverted(Sphere::new(1.))),
         material: Material::new(Vector3::new(0.6, 0.75, 0.5) * 0.5, 0.8, false),
         scale: 5.,
         ..Default::default()
-    });
+    };
 
-    let light = Object::new(ObjectDefinition {
+    let light = ObjectDefinition {
         shape: Box::new(sphere_shape),
         material: Material::new(Vector3::new(1., 1., 1.) * 1., 1.0, true),
         y: -0.5,
         z: -5.,
         scale: 0.75,
         ..Default::default()
-    });
+    };
 
     let scene = Scene::new(camera, vec![sphere_a, sphere_b, environment, light]);
 

@@ -59,19 +59,6 @@ impl Object {
         }
     }
 
-    pub fn new_old<S: Shape + 'static>(
-        shape: S,
-        transform: Similarity3<f64>,
-        material: Material,
-    ) -> Self {
-        Self {
-            shape: Box::new(shape),
-            transform,
-            material,
-            inverse_transform: transform.inverse(),
-        }
-    }
-
     pub fn transform(&self) -> &Similarity3<f64> {
         &self.transform
     }

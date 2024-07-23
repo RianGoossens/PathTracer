@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use path_tracer::{
     aperture::RegularPolygonAperture, object::ObjectDefinition, renderer::ParallelRenderer,
-    BackwardRenderer, Camera, Material, Object, Renderer, Scene, Sphere,
+    BackwardRenderer, Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -18,13 +18,13 @@ fn main() {
 
     let sphere_shape = Sphere::new(1.);
 
-    let light = Object::new(ObjectDefinition {
+    let light = ObjectDefinition {
         shape: Box::new(sphere_shape),
         material: Material::new(Vector3::new(3., 3., 3.), 0., true),
         z: -5.,
         scale: 0.25,
         ..Default::default()
-    });
+    };
 
     let scene = Scene::new(camera, vec![light]);
 

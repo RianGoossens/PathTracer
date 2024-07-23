@@ -7,7 +7,7 @@ use path_tracer::{
     renderer::RecursiveBDPT,
     shader::Checkerboard,
     shape::{Cuboid, Plane},
-    Camera, Material, Object, Renderer, Scene, Sphere,
+    Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -35,24 +35,24 @@ fn main() {
         Vector3::new(0.6, 0.6, 0.8) * 0.5,
         0.25,
     );
-    let bottom_plane = Object::new(ObjectDefinition {
+    let bottom_plane = ObjectDefinition {
         shape: Box::new(Plane::new(10., 10.)),
         material: Material::new_reflective(checkerboard, 1., 0., 0.),
         ..Default::default()
-    });
+    };
 
     let ior = 1.5;
 
-    let left_cuboid = Object::new(ObjectDefinition {
+    let left_cuboid = ObjectDefinition {
         shape: Box::new(Cuboid::new(1., 1., 0.25)),
         material: Material::new_reflective(Vector3::new(0.9, 0.99, 0.9), 0., 0.9, ior),
         x: -0.6,
         z: 1.,
         scale: 0.75,
         ..Default::default()
-    });
+    };
 
-    let right_cuboid = Object::new(ObjectDefinition {
+    let right_cuboid = ObjectDefinition {
         shape: Box::new(Cuboid::new(1., 1., 0.25)),
         material: Material::new_reflective(Vector3::new(0.9, 0.99, 0.9), 0., 0.9, ior),
         x: 0.6,
@@ -60,39 +60,39 @@ fn main() {
         rx: TAU / 16.,
         scale: 0.75,
         ..Default::default()
-    });
+    };
 
-    let sphere = Object::new(ObjectDefinition {
+    let sphere = ObjectDefinition {
         shape: Box::new(Sphere::new(0.5)),
         material: Material::new_reflective(Vector3::new(0.9, 0.99, 0.9), 0., 0.9, ior),
         y: 1.,
         z: 1.,
         ..Default::default()
-    });
+    };
 
-    let inner_sphere = Object::new(ObjectDefinition {
+    let inner_sphere = ObjectDefinition {
         shape: Box::new(Sphere::new(0.5)),
         material: Material::new_reflective(Vector3::new(1., 1., 1.), 0., 0.9, 1. / ior),
         y: 1.,
         z: 1.,
         scale: 0.9,
         ..Default::default()
-    });
+    };
 
-    let light = Object::new(ObjectDefinition {
+    let light = ObjectDefinition {
         shape: Box::new(Sphere::new(1.)),
         material: Material::new(Vector3::new(1.0, 1.0, 1.0) * 5.0, 1., true),
         x: 1.0,
         y: 1.0,
         z: 3.,
         ..Default::default()
-    });
+    };
 
-    let environment = Object::new(ObjectDefinition {
+    let environment = ObjectDefinition {
         shape: Box::new(Sphere::new(5.)),
         material: Material::new_reflective(Vector3::new(1., 1., 1.) * 0.75, 1., 0.9, 1.),
         ..Default::default()
-    });
+    };
 
     let scene = Scene::new(
         camera,

@@ -2,7 +2,7 @@ use std::time::Instant;
 
 use path_tracer::{
     aperture::GaussianAperture, camera::CameraSettings, object::ObjectDefinition,
-    renderer::RecursiveBDPT, shape::Cuboid, Camera, Material, Object, Renderer, Scene, Sphere,
+    renderer::RecursiveBDPT, shape::Cuboid, Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -27,19 +27,19 @@ fn main() {
 
     let mirror_material = Material::new(Vector3::new(0.5, 0.8, 0.5), 0., false);
 
-    let cube = Object::new(ObjectDefinition {
+    let cube = ObjectDefinition {
         shape: Box::new(Cuboid::new(2., 2., 2.)),
         material: mirror_material,
         ..Default::default()
-    });
+    };
 
-    let light = Object::new(ObjectDefinition {
+    let light = ObjectDefinition {
         shape: Box::new(Sphere::new(1.)),
         y: 0.5,
         scale: 0.2,
         material: Material::new(Vector3::new(1., 1., 1.) * 1., 1., true),
         ..Default::default()
-    });
+    };
 
     let scene = Scene::new(camera, vec![cube, light]);
 
