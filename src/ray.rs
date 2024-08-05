@@ -7,6 +7,9 @@ pub struct Ray {
 }
 
 impl Ray {
+    pub fn new(origin: Point3<f64>, direction: Vector3<f64>) -> Self {
+        Self { origin, direction }
+    }
     pub fn transform_similarity(&self, transform: &Similarity3<f64>) -> Ray {
         let new_origin = transform.transform_point(&self.origin);
         let new_direction = transform.transform_point(&(self.origin + self.direction)) - new_origin;

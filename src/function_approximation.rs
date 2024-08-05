@@ -8,7 +8,7 @@ pub struct LinearInterpolator {
 impl LinearInterpolator {
     pub fn build(xs: &[f64], ys: &[f64]) -> Self {
         let mut data: Vec<_> = xs.iter().zip(ys).collect();
-        data.sort_by(|a, b| a.0.total_cmp(b.0));
+        data.sort_unstable_by(|a, b| a.0.total_cmp(b.0));
         let (xs, ys) = data.into_iter().unzip();
         Self { xs, ys }
     }

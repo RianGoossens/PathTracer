@@ -1,13 +1,16 @@
-use std::{f64::consts::PI, sync::Arc};
+use std::{
+    f64::consts::{FRAC_PI_2, PI, TAU},
+    sync::Arc,
+};
 
 use na::{Point3, Vector3};
-use nalgebra as na;
+use nalgebra::{self as na, distance, ComplexField, Vector2};
 use rand::{thread_rng, Rng};
-use rand_distr::StandardNormal;
+use rand_distr::{Distribution, StandardNormal, Uniform, UnitBall, UnitDisc};
 
 use crate::{
     find_normal, function_approximation::ProbabilityDensityFunction, reflect,
-    shape::IntersectionInfo, Ray, Shader,
+    shape::IntersectionInfo, Ray, Shader, Sphere,
 };
 
 #[derive(Clone)]
@@ -212,6 +215,128 @@ impl Material {
                 outgoing: None,
                 pdf: 1.,
             },
+        }
+    }
+
+    pub fn create_cones(
+        &self,
+        incoming: Vector3<f64>,
+        intersection: &IntersectionInfo,
+    ) -> ConeInteraction {
+        match self {
+            Material::Reflective {
+                roughness, color, ..
+            } => {
+                let specular_normal = if intersection.normal.dot(&incoming) > 0. {
+                    -intersection.normal
+                } else {
+                    intersection.normal
+                };
+                //For now, let's focus only on roughness
+
+                let specular_reflection = reflect(&incoming, &specular_normal);
+
+                let reflection = specular_reflection.slerp(&specular_normal, *roughness);
+                let reflection_axis =
+                    Ray::new(intersection.position + reflection * 0.001, reflection);
+                ConeInteraction {
+                    outgoing: Some(InfiniteCone::new(reflection_axis, 1. - roughness)),
+                    emission: Vector3::zeros(),
+                    filter: color.shade(&intersection.position.coords),
+                }
+            }
+            Material::Emissive { .. } => ConeInteraction {
+                outgoing: None,
+                emission: self.emission_color(),
+                filter: Vector3::zeros(),
+            },
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct ConeInteraction {
+    pub outgoing: Option<InfiniteCone>,
+    pub emission: Vector3<f64>,
+    pub filter: Vector3<f64>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct InfiniteCone {
+    pub axis: Ray,
+    pub half_angle_cos: f64,
+}
+
+impl InfiniteCone {
+    pub fn new(axis: Ray, half_angle_cos: f64) -> Self {
+        Self {
+            axis,
+            half_angle_cos,
+        }
+    }
+
+    pub fn contains_point(&self, point: Point3<f64>) -> bool {
+        /* We check if a point lies inside of a cone.
+        To do this, we first check the angle of the origin of the cone and the point.
+        If the angle is smaller than the angle of the cone, it must follow that the point is inside.*/
+        let origin_to_point = (point - self.axis.origin).normalize();
+        let point_half_angle_cos = origin_to_point.dot(&self.axis.direction);
+
+        point_half_angle_cos >= self.half_angle_cos
+    }
+
+    pub fn path_strength(&self, destination: &Point3<f64>) -> f64 {
+        let origin_to_point = (destination - self.axis.origin).normalize();
+        let point_half_angle_cos = origin_to_point.dot(&self.axis.direction);
+
+        let inside = point_half_angle_cos >= self.half_angle_cos;
+
+        if inside {
+            if self.half_angle_cos == 1. {
+                1.
+            } else {
+                let distance = na::distance(destination, &self.axis.origin);
+                let spherical_cap_area = TAU * (1. - self.half_angle_cos) * distance * distance;
+
+                let ray_area = 1.;
+
+                (ray_area / spherical_cap_area).min(1.)
+            }
+        } else {
+            0.
+        }
+    }
+
+    pub fn sample_ray<R: Rng>(&self, rng: &mut R) -> Ray {
+        if self.half_angle_cos == 1. {
+            self.axis
+        } else {
+            //We calculate 2 random axes perpendicular to the cone axis.
+            let random_direction =
+                Vector3::<f64>::from_distribution(&StandardNormal, rng).normalize();
+            let axis_a = self.axis.direction.cross(&random_direction);
+            let axis_b = self.axis.direction.cross(&axis_a);
+
+            let uniform = Uniform::new(0.0, 1.0);
+
+            // Generate r1 and r2
+            let rs = Vector2::<f64>::from_distribution(&uniform, rng);
+
+            // Calculate phi_r and theta_r
+            let phi_r = TAU * rs.x;
+            let (phi_r_sin, phi_r_cos) = phi_r.sin_cos();
+
+            let theta_r_cos = (1.0 - self.half_angle_cos) * rs.y + self.half_angle_cos;
+            let theta_r_sin = (1.0 - theta_r_cos * theta_r_cos).sqrt();
+
+            // Calculate Cartesian coordinates
+            let x = theta_r_sin * phi_r_cos;
+            let y = theta_r_sin * phi_r_sin;
+            let z = theta_r_cos;
+
+            let sampled_direction = x * axis_a + y * axis_b + z * self.axis.direction;
+
+            Ray::new(self.axis.origin, sampled_direction)
         }
     }
 }

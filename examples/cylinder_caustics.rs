@@ -4,9 +4,9 @@ use path_tracer::{
     aperture::RegularPolygonAperture,
     camera::CameraSettings,
     object::ObjectDefinition,
-    renderer::RecursiveBDPT,
+    renderer::{BDPTRenderer, ConeRenderer, RecursiveBDPT, SimpleRenderer},
     shape::{Cylinder, Plane},
-    Camera, Material, Renderer, Scene, Sphere,
+    BackwardRenderer, Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -50,7 +50,7 @@ fn main() {
 
     let top_light = ObjectDefinition {
         shape: Box::new(Sphere::new(0.5)),
-        material: Material::new(Vector3::new(1.0, 1.0, 1.0) * 2., 1., true),
+        material: Material::new(Vector3::new(1.0, 1.0, 1.0) * 5., 1., true),
         x: 1.5,
         y: 1.0,
         z: 2.0,
@@ -60,7 +60,7 @@ fn main() {
     let scene = Scene::new(camera, vec![bottom_plane, cylinder, top_light]);
 
     let start = Instant::now();
-    let renderer = RecursiveBDPT::new(10).parallel(NUM_SAMPLES);
+    let renderer = BDPTRenderer::new(10).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     //let render_buffer = render_buffer.median_filter(9);

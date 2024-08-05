@@ -1,7 +1,8 @@
-use na::{Point3, Vector3};
-use nalgebra as na;
+use crate::{material::InfiniteCone, Material, Ray, RenderBuffer, Renderer, Scene};
 
-use crate::{Material, Ray, RenderBuffer, Renderer, Scene};
+use na::Vector3;
+use nalgebra::{self as na, Point3};
+use rand::thread_rng;
 
 #[derive(Clone, Copy)]
 struct PathVertex<'a> {
@@ -11,7 +12,13 @@ struct PathVertex<'a> {
     pub material: &'a Material,
     pub accumulated_absorption: Vector3<f64>,
     pub accumulated_emission: Vector3<f64>,
-    pub path_distance: f64,
+}
+
+#[derive(Clone, Copy)]
+struct ConeVertex {
+    pub cone: InfiniteCone,
+    pub accumulated_absorption: Vector3<f64>,
+    pub accumulated_emission: Vector3<f64>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -20,20 +27,12 @@ enum PathDirection {
     LightPath,
 }
 
-pub struct BDPTRenderer {
-    max_bounces: u8,
-    camera_material: Material,
+pub struct ConeRenderer {
+    pub max_bounces: u8,
+    pub camera_material: Material,
 }
 
-fn path_length<'a>(path: &'a [PathVertex<'a>]) -> f64 {
-    let mut length = 0.;
-    for i in 0..path.len() - 1 {
-        length += na::distance(&path[i].position, &path[i + 1].position);
-    }
-    length
-}
-
-impl BDPTRenderer {
+impl ConeRenderer {
     pub fn new(max_bounces: u8) -> Self {
         Self {
             max_bounces,
@@ -58,7 +57,6 @@ impl BDPTRenderer {
             material,
             accumulated_absorption: Vector3::new(1., 1., 1.),
             accumulated_emission: emission,
-            path_distance: 0.,
         };
 
         let mut current_path = vec![first_vertex];
@@ -67,12 +65,16 @@ impl BDPTRenderer {
         let mut accumulated_emission = emission;
         let mut accumulated_absorption = absorption;
 
-        let mut path_distance = 0.;
+        let mut rng = thread_rng();
+
         for _bounce in 0..self.max_bounces {
             if let Some((object, intersection)) = scene.intersection(&current_ray) {
-                let interaction = object.material().interact(&current_ray, &intersection);
-                let current_absorption = interaction.filter;
-                let current_emission = interaction.emission;
+                let cone_interaction = object
+                    .material()
+                    .create_cones(current_ray.direction, &intersection);
+
+                let current_absorption = cone_interaction.filter;
+                let current_emission = cone_interaction.emission;
 
                 accumulated_emission = match path_direction {
                     PathDirection::CameraPath => {
@@ -84,7 +86,6 @@ impl BDPTRenderer {
                     }
                 };
                 accumulated_absorption.component_mul_assign(&current_absorption);
-                path_distance += na::distance(&ray.origin, &intersection.position);
 
                 let vertex = PathVertex {
                     position: intersection.position,
@@ -93,17 +94,15 @@ impl BDPTRenderer {
                     material: object.material(),
                     accumulated_absorption,
                     accumulated_emission,
-                    path_distance,
                 };
 
                 current_path.push(vertex);
-                if let Some(outgoing) = interaction.outgoing {
-                    current_ray = outgoing;
+
+                if let Some(cone) = &cone_interaction.outgoing {
+                    current_ray = cone.sample_ray(&mut rng);
                 } else {
                     break;
                 }
-            } else {
-                break;
             }
         }
 
@@ -123,12 +122,12 @@ impl BDPTRenderer {
             light.material(),
             PathDirection::LightPath,
         );
-        let mut total_importance = 1. / path_length(&camera_path).powi(2); //1. / camera_path.len() as f64;
+        let mut total_importance = 1.; //1. / camera_path.len() as f64;
         let mut total_light =
             total_importance * camera_path[camera_path.len() - 1].accumulated_emission;
 
-        for vertex_light in &light_path {
-            for vertex_camera in &camera_path[1..] {
+        for vertex_camera in &camera_path[1..] {
+            for vertex_light in &light_path {
                 if vertex_camera.normal.dot(&vertex_light.normal) < 0.
                     && scene.is_visible(&vertex_camera.position, &vertex_light.position)
                 {
@@ -139,11 +138,6 @@ impl BDPTRenderer {
 
                     let difference = (vertex_light.position - vertex_camera.position).normalize();
                     //let mut importance = 1. / (i + light_path.len() - j) as f64;
-
-                    let path_distance = vertex_camera.path_distance
-                        + vertex_light.path_distance
-                        + na::distance(&vertex_camera.position, &vertex_light.position);
-
                     let importance = vertex_camera.material.likelihood(
                         &vertex_camera.incoming,
                         &difference,
@@ -152,7 +146,7 @@ impl BDPTRenderer {
                         &vertex_light.incoming,
                         &-difference,
                         &vertex_light.normal,
-                    ) / path_distance.powi(2);
+                    );
                     total_light += current_light * importance;
                     total_importance += importance;
                 }
@@ -165,8 +159,8 @@ impl BDPTRenderer {
     }
 }
 
-impl Renderer for BDPTRenderer {
-    fn render(&self, scene: &crate::Scene) -> RenderBuffer {
+impl Renderer for ConeRenderer {
+    fn render(&self, scene: &Scene) -> RenderBuffer {
         let width = scene.camera.width;
         let height = scene.camera.height;
 

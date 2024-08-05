@@ -59,7 +59,7 @@ impl RenderBuffer {
                         }
                     }
                 }
-                colors.sort_by(|a, b| a.sum().total_cmp(&b.sum()));
+                colors.sort_unstable_by(|a, b| a.sum().total_cmp(&b.sum()));
                 let color = colors[colors.len() / 2];
                 result[(row as u32, col as u32)] = color;
             }
