@@ -1,25 +1,7 @@
-use crate::{camera, Material, Ray, RenderBuffer, Renderer, Scene};
+use crate::{Material, Ray, RenderBuffer, Renderer, Scene};
 
 use na::Vector3;
 use nalgebra::{self as na, Point3};
-use rand::thread_rng;
-use rand_distr::num_traits::Zero;
-
-#[derive(Clone, Copy)]
-struct PathVertex<'a> {
-    pub position: Point3<f64>,
-    pub normal: Vector3<f64>,
-    pub incoming: Vector3<f64>,
-    pub material: &'a Material,
-    pub accumulated_absorption: Vector3<f64>,
-    pub accumulated_emission: Vector3<f64>,
-}
-
-#[derive(Debug, Clone, Copy)]
-enum PathDirection {
-    CameraPath,
-    LightPath,
-}
 
 struct CameraPathVertex<'a> {
     pub position: Point3<f64>,

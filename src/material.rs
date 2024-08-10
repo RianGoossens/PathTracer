@@ -1,16 +1,16 @@
 use std::{
-    f64::consts::{FRAC_PI_2, PI, TAU},
+    f64::consts::{PI, TAU},
     sync::Arc,
 };
 
 use na::{Point3, Vector3};
-use nalgebra::{self as na, distance, ComplexField, Vector2};
+use nalgebra::{self as na, Vector2};
 use rand::{thread_rng, Rng};
-use rand_distr::{Distribution, StandardNormal, Uniform, UnitBall, UnitDisc};
+use rand_distr::{StandardNormal, Uniform};
 
 use crate::{
     find_normal, function_approximation::ProbabilityDensityFunction, reflect,
-    shape::IntersectionInfo, Ray, Shader, Sphere,
+    shape::IntersectionInfo, Ray, Shader,
 };
 
 #[derive(Clone)]
