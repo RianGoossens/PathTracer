@@ -12,7 +12,7 @@ We want a function p(v) that approximates the probability that f produces v
 suppose we have a pdf(v) that gives the probability v is chosen by cdf(n)
 with n a random normalized vector
 
-pdf = cdf-1(x,y,z) dx dy dz 
+pdf = cdf-1(x,y,z) dx dy dz
 
 */
 

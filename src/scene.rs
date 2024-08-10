@@ -47,7 +47,7 @@ impl Scene {
         };
 
         if let Some((_, intersection)) = self.intersection(&ray) {
-            distance <= intersection.distance + 0.002
+            distance <= intersection.local_distance + 0.002
         } else {
             true
         }
@@ -59,9 +59,11 @@ impl Scene {
 
         for object in &self.objects {
             if let Some(intersection) = object.local_intersection(ray) {
-                if intersection.distance >= 0. && intersection.distance < closest_distance {
+                if intersection.local_distance >= 0.
+                    && intersection.local_distance < closest_distance
+                {
                     closest_intersection = Some((object, intersection));
-                    closest_distance = intersection.distance;
+                    closest_distance = intersection.local_distance;
                 }
             }
         }

@@ -1,8 +1,9 @@
-use crate::{material::InfiniteCone, Material, Ray, RenderBuffer, Renderer, Scene};
+use crate::{camera, Material, Ray, RenderBuffer, Renderer, Scene};
 
 use na::Vector3;
 use nalgebra::{self as na, Point3};
 use rand::thread_rng;
+use rand_distr::num_traits::Zero;
 
 #[derive(Clone, Copy)]
 struct PathVertex<'a> {
@@ -14,17 +15,21 @@ struct PathVertex<'a> {
     pub accumulated_emission: Vector3<f64>,
 }
 
-#[derive(Clone, Copy)]
-struct ConeVertex {
-    pub cone: InfiniteCone,
-    pub accumulated_absorption: Vector3<f64>,
-    pub accumulated_emission: Vector3<f64>,
-}
-
 #[derive(Debug, Clone, Copy)]
 enum PathDirection {
     CameraPath,
     LightPath,
+}
+
+struct CameraPathVertex<'a> {
+    pub position: Point3<f64>,
+    pub normal: Vector3<f64>,
+    pub path_direction: Vector3<f64>,
+    pub material: &'a Material,
+    pub accumulated_absorption: Vector3<f64>,
+    pub accumulated_emission: Vector3<f64>,
+    pub accumulated_distance: f64,
+    pub accumulated_likelihood: f64,
 }
 
 pub struct ConeRenderer {
@@ -40,93 +45,140 @@ impl ConeRenderer {
         }
     }
 
-    fn sample_path<'a>(
+    fn sample_camera_path<'a>(
         &'a self,
         ray: &'a Ray,
         scene: &'a Scene,
-        material: &'a Material,
-        path_direction: PathDirection,
-    ) -> Vec<PathVertex<'a>> {
-        let absorption = material.absorption_color(&ray.origin.coords);
-        let emission = material.emission_color();
-
-        let first_vertex = PathVertex {
-            position: ray.origin,
-            normal: ray.direction,
-            incoming: -ray.direction,
-            material,
-            accumulated_absorption: Vector3::new(1., 1., 1.),
-            accumulated_emission: emission,
-        };
-
-        let mut current_path = vec![first_vertex];
+    ) -> Vec<CameraPathVertex<'a>> {
+        let mut accumulated_absorption = Vector3::new(1., 1., 1.);
+        let mut accumulated_emission = Vector3::zeros();
+        let mut accumulated_distance = 0.;
+        let mut accumulated_likelihood = 1.;
+        let mut path = vec![];
 
         let mut current_ray = *ray;
-        let mut accumulated_emission = emission;
-        let mut accumulated_absorption = absorption;
-
-        let mut rng = thread_rng();
 
         for _bounce in 0..self.max_bounces {
             if let Some((object, intersection)) = scene.intersection(&current_ray) {
-                let cone_interaction = object
-                    .material()
-                    .create_cones(current_ray.direction, &intersection);
+                let material = object.material();
+                accumulated_emission = material
+                    .emission_color()
+                    .component_mul(&accumulated_absorption)
+                    + accumulated_emission;
+                accumulated_absorption.component_mul_assign(
+                    &material.absorption_color(&intersection.position.coords),
+                );
+                accumulated_distance += intersection.local_distance;
 
-                let current_absorption = cone_interaction.filter;
-                let current_emission = cone_interaction.emission;
-
-                accumulated_emission = match path_direction {
-                    PathDirection::CameraPath => {
-                        current_emission.component_mul(&accumulated_absorption)
-                            + accumulated_emission
-                    }
-                    PathDirection::LightPath => {
-                        accumulated_emission.component_mul(&current_absorption) + current_emission
-                    }
-                };
-                accumulated_absorption.component_mul_assign(&current_absorption);
-
-                let vertex = PathVertex {
+                let current_vertex = CameraPathVertex {
                     position: intersection.position,
-                    normal: intersection.normal.normalize(),
-                    incoming: current_ray.direction,
-                    material: object.material(),
+                    normal: intersection.normal,
+                    path_direction: -current_ray.direction,
+                    material,
                     accumulated_absorption,
                     accumulated_emission,
+                    accumulated_distance,
+                    accumulated_likelihood,
                 };
 
-                current_path.push(vertex);
+                path.push(current_vertex);
 
-                if let Some(cone) = &cone_interaction.outgoing {
-                    current_ray = cone.sample_ray(&mut rng);
-                } else {
+                if _bounce == self.max_bounces - 1 {
                     break;
+                }
+                let interaction = material.interact2(&current_ray, &intersection);
+
+                if let Some(outgoing) = interaction.outgoing {
+                    let likelihood = material.likelihood(
+                        &-outgoing.direction,
+                        &-current_ray.direction,
+                        &intersection.normal,
+                    );
+                    accumulated_likelihood *= likelihood;
+
+                    current_ray = outgoing;
                 }
             }
         }
 
-        current_path
+        path
     }
 
-    fn sample_color(&self, ray: &Ray, scene: &Scene) -> Vector3<f64> {
-        let camera_path =
-            self.sample_path(ray, scene, &self.camera_material, PathDirection::CameraPath);
-
+    fn sample_light_path<'a>(&'a self, scene: &'a Scene) -> Vec<CameraPathVertex<'a>> {
         let light = scene.random_light();
 
-        let light_ray = light.sample_emissive_ray();
-        let light_path = self.sample_path(
-            &light_ray,
-            scene,
-            light.material(),
-            PathDirection::LightPath,
-        );
-        let mut total_importance = 1.; //1. / camera_path.len() as f64;
-        let mut total_light =
-            total_importance * camera_path[camera_path.len() - 1].accumulated_emission;
+        let mut current_ray = light.sample_emissive_ray();
 
-        for vertex_camera in &camera_path[1..] {
+        let mut accumulated_absorption = Vector3::new(1., 1., 1.);
+        let mut accumulated_emission = light.material().emission_color();
+        let mut accumulated_distance = 0.;
+        let mut accumulated_likelihood = 1.;
+
+        let first_vertex = CameraPathVertex {
+            position: current_ray.origin,
+            normal: current_ray.direction,
+            path_direction: current_ray.direction,
+            material: light.material(),
+            accumulated_absorption,
+            accumulated_emission,
+            accumulated_distance,
+            accumulated_likelihood,
+        };
+
+        let mut path = vec![first_vertex];
+
+        for _bounce in 0..self.max_bounces {
+            if let Some((object, intersection)) = scene.intersection(&current_ray) {
+                let material = object.material();
+                let interaction = material.interact2(&current_ray, &intersection);
+
+                if let Some(outgoing) = interaction.outgoing {
+                    let current_absorption =
+                        material.absorption_color(&intersection.position.coords);
+                    accumulated_emission = current_absorption.component_mul(&accumulated_emission)
+                        + material.emission_color();
+                    accumulated_absorption.component_mul_assign(&current_absorption);
+                    accumulated_distance +=
+                        na::distance(&current_ray.origin, &intersection.position);
+
+                    let current_vertex = CameraPathVertex {
+                        position: intersection.position,
+                        normal: intersection.normal,
+                        path_direction: outgoing.direction,
+                        material,
+                        accumulated_absorption,
+                        accumulated_emission,
+                        accumulated_distance,
+                        accumulated_likelihood,
+                    };
+
+                    path.push(current_vertex);
+
+                    let likelihood = material.likelihood(
+                        &current_ray.direction,
+                        &outgoing.direction,
+                        &intersection.normal,
+                    );
+                    accumulated_likelihood *= likelihood;
+
+                    current_ray = outgoing;
+                }
+            }
+        }
+
+        path
+    }
+
+    fn sample_color(&self, ray: &Ray, scene: &Scene) -> (Vector3<f64>, f64) {
+        let camera_path = self.sample_camera_path(ray, scene);
+        let light_path = self.sample_light_path(scene);
+
+        let last_camera_vertex = camera_path.last().unwrap();
+        let mut total_importance = last_camera_vertex.accumulated_likelihood
+            / last_camera_vertex.accumulated_distance.powi(2); //1. / camera_path.len() as f64;
+        let mut total_light = total_importance * last_camera_vertex.accumulated_emission;
+
+        for vertex_camera in &camera_path {
             for vertex_light in &light_path {
                 if vertex_camera.normal.dot(&vertex_light.normal) < 0.
                     && scene.is_visible(&vertex_camera.position, &vertex_light.position)
@@ -136,26 +188,31 @@ impl ConeRenderer {
                         .component_mul(&vertex_camera.accumulated_absorption)
                         + vertex_camera.accumulated_emission;
 
-                    let difference = (vertex_light.position - vertex_camera.position).normalize();
-                    //let mut importance = 1. / (i + light_path.len() - j) as f64;
-                    let importance = vertex_camera.material.likelihood(
-                        &vertex_camera.incoming,
-                        &difference,
+                    let edge = vertex_camera.position - vertex_light.position;
+                    let edge_direction = edge.normalize();
+                    let edge_distance = edge.magnitude();
+
+                    let edge_importance = vertex_camera.material.likelihood(
+                        &edge_direction,
+                        &vertex_camera.path_direction,
                         &vertex_camera.normal,
-                    ) * vertex_light.material.likelihood(
-                        &vertex_light.incoming,
-                        &-difference,
-                        &vertex_light.normal,
                     );
+
+                    let distance = vertex_camera.accumulated_distance
+                        + vertex_light.accumulated_distance
+                        + edge_distance;
+                    let likelihood = vertex_camera.accumulated_likelihood
+                        * vertex_light.accumulated_likelihood
+                        * edge_importance;
+                    let importance = likelihood / distance.powi(2);
+
                     total_light += current_light * importance;
                     total_importance += importance;
                 }
             }
         }
-        if total_importance > 0. {
-            total_light /= total_importance;
-        }
-        total_light
+
+        (total_light, total_importance)
     }
 }
 
@@ -168,9 +225,16 @@ impl Renderer for ConeRenderer {
 
         for x in 0..width {
             for y in 0..height {
-                let ray = scene.camera.get_ray(x, y);
+                let mut total_weight = 0.;
+                let mut total_color = Vector3::zeros();
+                for _ in 0..10 {
+                    let ray = scene.camera.get_ray(x, y);
 
-                render_buffer[(x, y)] = self.sample_color(&ray, scene);
+                    let (color, weight) = self.sample_color(&ray, scene);
+                    total_color += color;
+                    total_weight += weight;
+                }
+                render_buffer[(x, y)] = total_color / total_weight;
             }
         }
 

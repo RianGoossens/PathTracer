@@ -97,6 +97,7 @@ impl BDPTRenderer {
                 };
 
                 current_path.push(vertex);
+
                 if let Some(outgoing) = interaction.outgoing {
                     current_ray = outgoing;
                 } else {
@@ -123,7 +124,7 @@ impl BDPTRenderer {
             light.material(),
             PathDirection::LightPath,
         );
-        let mut total_importance = 1. / path_length(&camera_path).powi(2); //1. / camera_path.len() as f64;
+        let mut total_importance = 1. / path_length(&camera_path).powi(4); //1. / camera_path.len() as f64;
         let mut total_light =
             total_importance * camera_path[camera_path.len() - 1].accumulated_emission;
 

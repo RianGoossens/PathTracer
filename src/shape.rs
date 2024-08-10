@@ -18,7 +18,7 @@ pub use sphere::Sphere;
 
 #[derive(Debug, Clone, Copy)]
 pub struct IntersectionInfo {
-    pub distance: f64,
+    pub local_distance: f64,
     pub position: Point3<f64>,
     pub normal: Vector3<f64>,
 }
@@ -54,7 +54,7 @@ pub trait Shape: Send + Sync {
             let position = ray.origin + distance * ray.direction;
             let normal = self.sample_normal(position);
             IntersectionInfo {
-                distance,
+                local_distance: distance,
                 position,
                 normal,
             }

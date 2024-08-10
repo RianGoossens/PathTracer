@@ -120,9 +120,9 @@ impl Material {
                     pdf.likelihood(angle_dot) * (1. - transmission)
                 } else {
                     let direction = if normal.dot(incoming) >= 0. {
-                        normal.slerp(incoming, *ior)
+                        normal.slerp(incoming, 1. / ior)
                     } else {
-                        (-normal).slerp(incoming, 1. / ior)
+                        (-normal).slerp(incoming, *ior)
                     };
 
                     let angle_dot = direction.dot(outgoing);
@@ -205,6 +205,83 @@ impl Material {
                     emission: Vector3::zeros(),
                     outgoing: Some(outgoing),
                     pdf: likelihood,
+                }
+            }
+            Material::Emissive { color } => SurfaceInteraction {
+                position: intersection.position,
+                surface_normal: intersection.normal,
+                filter: Vector3::new(1., 1., 1.),
+                emission: *color,
+                outgoing: None,
+                pdf: 1.,
+            },
+        }
+    }
+
+    pub fn interact2(&self, incoming: &Ray, intersection: &IntersectionInfo) -> SurfaceInteraction {
+        let mut intersection = *intersection;
+
+        match self {
+            Material::Reflective {
+                color,
+                roughness,
+                pdf,
+                transmission,
+                ior,
+                ..
+            } => {
+                let mut rng = thread_rng();
+                let transmitted = rng.gen_bool(*transmission);
+
+                let desired_angle = if *roughness == 0. {
+                    1.
+                } else {
+                    pdf.sample(&mut rng)
+                };
+                if intersection.normal.dot(&incoming.direction) > 0. {
+                    intersection.normal = -intersection.normal;
+                }
+
+                let specular_normal = &intersection.normal;
+                let random_direction: Vector3<f64> =
+                    Vector3::from_distribution(&StandardNormal, &mut rng).normalize();
+
+                let perpendicular_vector = specular_normal.cross(&random_direction);
+
+                let scatter_normal = perpendicular_vector.slerp(specular_normal, desired_angle);
+
+                // if scatter_normal.dot(&intersection.normal) < 0. {
+                //     scatter_normal = -scatter_normal;
+                // }
+
+                let outgoing_direction = if transmitted {
+                    if scatter_normal.dot(&incoming.direction) >= 0. {
+                        scatter_normal.slerp(&incoming.direction, 1. / ior)
+                    } else {
+                        (-scatter_normal).slerp(&incoming.direction, *ior)
+                    }
+                } else {
+                    let mut outgoing_direction = reflect(&incoming.direction, &scatter_normal);
+
+                    if outgoing_direction.dot(specular_normal) < 0. {
+                        outgoing_direction = reflect(&outgoing_direction, specular_normal);
+                    }
+
+                    outgoing_direction
+                };
+
+                let outgoing = Ray {
+                    direction: outgoing_direction,
+                    origin: intersection.position + outgoing_direction * 0.001,
+                };
+
+                SurfaceInteraction {
+                    position: intersection.position,
+                    surface_normal: intersection.normal,
+                    filter: color.shade(&intersection.position.coords),
+                    emission: Vector3::zeros(),
+                    outgoing: Some(outgoing),
+                    pdf: 0.,
                 }
             }
             Material::Emissive { color } => SurfaceInteraction {

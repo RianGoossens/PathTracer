@@ -1,15 +1,19 @@
 use std::{f64::consts::TAU, time::Instant};
 
 use path_tracer::{
-    aperture::PinholeAperture, camera::CameraSettings, object::ObjectDefinition,
-    renderer::RecursiveBDPT, shape::Cuboid, Camera, Material, Renderer, Scene, Sphere,
+    aperture::PinholeAperture,
+    camera::CameraSettings,
+    object::ObjectDefinition,
+    renderer::{BDPTRenderer, ConeRenderer, RecursiveBDPT},
+    shape::Cuboid,
+    Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
 use na::Vector3;
 
-const NUM_SAMPLES: usize = 100;
+const NUM_SAMPLES: usize = 10;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -29,11 +33,11 @@ fn main() {
     let plane = ObjectDefinition {
         shape: Box::new(Cuboid::new(6., 6., 1.)),
         material: Material::new_reflective(Vector3::new(1., 1., 1.) * 0.9, 1., 0., 1.),
-        z: -0.6,
+        z: -0.5,
         ..Default::default()
     };
 
-    let ior = 3.;
+    let ior = 1.1;
     let sphere_a = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
         material: Material::new_reflective(Vector3::new(0.9, 0.1, 0.1), 0.2, 0.25, ior),
@@ -45,7 +49,7 @@ fn main() {
 
     let sphere_b = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
-        material: Material::new_reflective(Vector3::new(0.1, 0.9, 0.1), 0., 0.5, ior),
+        material: Material::new_reflective(Vector3::new(0.1, 0.9, 0.1), 0.1, 0.5, ior),
         z: 0.3,
         ..Default::default()
     };
@@ -73,7 +77,7 @@ fn main() {
     let scene = Scene::new(camera, vec![plane, sphere_a, sphere_b, sphere_c, light]);
 
     let start = Instant::now();
-    let renderer = RecursiveBDPT::new(5).parallel(NUM_SAMPLES);
+    let renderer = ConeRenderer::new(10).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

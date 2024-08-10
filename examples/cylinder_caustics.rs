@@ -60,7 +60,7 @@ fn main() {
     let scene = Scene::new(camera, vec![bottom_plane, cylinder, top_light]);
 
     let start = Instant::now();
-    let renderer = BDPTRenderer::new(10).parallel(NUM_SAMPLES);
+    let renderer = ConeRenderer::new(10).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     //let render_buffer = render_buffer.median_filter(9);

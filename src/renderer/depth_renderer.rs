@@ -31,13 +31,13 @@ impl Renderer for DepthRenderer {
 
                 if let Some((_, intersection)) = scene.intersection(&ray) {
                     buffer[y as usize * scene.camera.width as usize + x as usize] =
-                        intersection.distance;
+                        intersection.local_distance;
 
-                    if intersection.distance > max_depth {
-                        max_depth = intersection.distance;
+                    if intersection.local_distance > max_depth {
+                        max_depth = intersection.local_distance;
                     }
-                    if intersection.distance < min_depth {
-                        min_depth = intersection.distance;
+                    if intersection.local_distance < min_depth {
+                        min_depth = intersection.local_distance;
                     }
                 }
             }
