@@ -84,6 +84,13 @@ impl Material {
         }
     }
 
+    pub fn is_emissive(&self) -> bool {
+        match self {
+            Material::Reflective { .. } => false,
+            Material::Emissive { .. } => true,
+        }
+    }
+
     pub fn emission_color(&self) -> Vector3<f64> {
         match self {
             Material::Emissive { color } => *color,

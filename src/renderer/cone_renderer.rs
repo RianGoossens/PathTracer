@@ -79,6 +79,8 @@ impl ConeRenderer {
                     accumulated_likelihood *= likelihood;
 
                     current_ray = outgoing;
+                } else {
+                    break;
                 }
             }
         }
@@ -144,7 +146,11 @@ impl ConeRenderer {
                     accumulated_likelihood *= likelihood;
 
                     current_ray = outgoing;
+                } else {
+                    break;
                 }
+            } else {
+                break;
             }
         }
 
@@ -155,12 +161,23 @@ impl ConeRenderer {
         let camera_path = self.sample_camera_path(ray, scene);
         let light_path = self.sample_light_path(scene);
 
-        let last_camera_vertex = camera_path.last().unwrap();
-        let mut total_importance = last_camera_vertex.accumulated_likelihood
-            / last_camera_vertex.accumulated_distance.powi(2);
-        let mut total_light = total_importance * last_camera_vertex.accumulated_emission;
+        let mut total_importance = 0.;
+        let mut total_light = Vector3::zeros();
+
+        if let Some(last_camera_vertex) = camera_path.last() {
+            total_importance += if last_camera_vertex.material.is_emissive() {
+                last_camera_vertex.accumulated_likelihood
+                    / last_camera_vertex.accumulated_distance.powi(2)
+            } else {
+                0.
+            };
+            total_light += total_importance * last_camera_vertex.accumulated_emission;
+        }
 
         for vertex_camera in &camera_path {
+            if vertex_camera.material.is_emissive() {
+                continue;
+            }
             for vertex_light in &light_path {
                 if vertex_camera.normal.dot(&vertex_light.normal) < 0.
                     && scene.is_visible(&vertex_camera.position, &vertex_light.position)
@@ -194,7 +211,11 @@ impl ConeRenderer {
             }
         }
 
-        (total_light, total_importance)
+        if total_importance > 0. {
+            total_light /= total_importance
+        }
+        //(total_light * total_importance, total_importance)
+        (total_light, 1.)
     }
 }
 

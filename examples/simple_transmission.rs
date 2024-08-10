@@ -25,7 +25,7 @@ fn main() {
         width: SIZE,
         height: SIZE,
         fov_degrees: 50.,
-        znear: 1.,
+        znear: 0.5,
         ..Default::default()
     };
     let camera = Camera::new(camera_settings, PinholeAperture, 1.);
@@ -37,7 +37,7 @@ fn main() {
         ..Default::default()
     };
 
-    let ior = 1.1;
+    let ior = 1.0;
     let sphere_a = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
         material: Material::new_reflective(Vector3::new(0.9, 0.1, 0.1), 0.2, 0.25, ior),
@@ -49,14 +49,14 @@ fn main() {
 
     let sphere_b = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
-        material: Material::new_reflective(Vector3::new(0.1, 0.9, 0.1), 0., 0.75, ior),
+        material: Material::new_reflective(Vector3::new(0.1, 1., 0.1), 0.0, 0.75, ior),
         z: 0.3,
         ..Default::default()
     };
 
     let sphere_c = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
-        material: Material::new_reflective(Vector3::new(0.1, 0.1, 0.9), 0.2, 0.75, ior),
+        material: Material::new_reflective(Vector3::new(0.1, 0.1, 0.9), 0.2, 0.5, ior),
         x: -0.6,
         y: -0.5,
         z: 0.3,
@@ -70,14 +70,14 @@ fn main() {
         },
         x: 0.,
         y: -4.,
-        z: 2.5,
+        z: 0.5,
         ..Default::default()
     };
 
     let scene = Scene::new(camera, vec![plane, sphere_a, sphere_b, sphere_c, light]);
 
     let start = Instant::now();
-    let renderer = ConeRenderer::new(10).parallel(NUM_SAMPLES);
+    let renderer = ConeRenderer::new(5).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());
