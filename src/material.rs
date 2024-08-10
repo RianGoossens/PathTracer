@@ -120,9 +120,9 @@ impl Material {
                     pdf.likelihood(angle_dot) * (1. - transmission)
                 } else {
                     let direction = if normal.dot(incoming) >= 0. {
-                        normal.slerp(incoming, 1. / ior)
+                        normal.slerp(incoming, *ior)
                     } else {
-                        (-normal).slerp(incoming, *ior)
+                        (-normal).slerp(incoming, 1. / ior)
                     };
 
                     let angle_dot = direction.dot(outgoing);
@@ -256,9 +256,9 @@ impl Material {
 
                 let outgoing_direction = if transmitted {
                     if scatter_normal.dot(&incoming.direction) >= 0. {
-                        scatter_normal.slerp(&incoming.direction, 1. / ior)
+                        scatter_normal.slerp(&incoming.direction, *ior)
                     } else {
-                        (-scatter_normal).slerp(&incoming.direction, *ior)
+                        (-scatter_normal).slerp(&incoming.direction, 1. / ior)
                     }
                 } else {
                     let mut outgoing_direction = reflect(&incoming.direction, &scatter_normal);

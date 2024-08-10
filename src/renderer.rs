@@ -49,7 +49,7 @@ impl<R: Renderer> Renderer for IterativeRenderer<R> {
             render_buffer += self.renderer.render(scene);
         }
 
-        render_buffer /= self.num_samples as f64;
+        //render_buffer /= self.num_samples as f64;
         render_buffer
     }
 }
@@ -113,7 +113,7 @@ impl<R: Renderer> Renderer for ParallelRenderer<R> {
             }
         });
 
-        render_buffer /= self.num_samples as f64;
+        //render_buffer /= self.num_samples as f64;
         render_buffer
     }
 }

@@ -1,12 +1,15 @@
-use std::ops::{AddAssign, DivAssign, Index, IndexMut};
+use std::{
+    ops::{AddAssign, DivAssign, Index, IndexMut},
+    vec,
+};
 
 use image::{Rgb, Rgb32FImage, RgbImage};
-use nalgebra::Vector3;
+use nalgebra::{Vector3, Vector4};
 #[derive(Debug, Clone)]
 pub struct RenderBuffer {
     width: u32,
     height: u32,
-    buffer: Vec<Vector3<f64>>,
+    buffer: Vec<Vector4<f64>>,
 }
 
 impl RenderBuffer {
@@ -14,7 +17,7 @@ impl RenderBuffer {
         Self {
             width,
             height,
-            buffer: vec![Vector3::zeros(); (width * height) as usize],
+            buffer: vec![Vector4::zeros(); (width * height) as usize],
         }
     }
 
@@ -26,7 +29,7 @@ impl RenderBuffer {
         self.height
     }
 
-    pub fn map<F: Fn(&Vector3<f64>) -> Vector3<f64>>(&self, f: F) -> Self {
+    pub fn map<F: Fn(&Vector4<f64>) -> Vector4<f64>>(&self, f: F) -> Self {
         Self {
             buffer: self.buffer.iter().map(&f).collect(),
             ..*self
@@ -34,11 +37,16 @@ impl RenderBuffer {
     }
 
     pub fn map_float<F: Fn(f64) -> f64>(&self, f: F) -> Self {
-        self.map(|vector| vector.map(&f))
+        self.map(|vector| Vector4::new(f(vector.x), f(vector.y), f(vector.z), vector.w))
+    }
+
+    pub fn flatten_samples(&self) -> Self {
+        self.map(|vector| vector / vector.w)
     }
 
     pub fn srgb(&self) -> Self {
-        self.map_float(|x| x.clamp(0., 1.).powf(1. / 2.2))
+        self.flatten_samples()
+            .map_float(|x| x.clamp(0., 1.).powf(1. / 2.2))
     }
 
     pub fn median_filter(&self, kernel_size: usize) -> Self {
@@ -70,7 +78,9 @@ impl RenderBuffer {
 
     pub fn to_image_u8(&self) -> RgbImage {
         RgbImage::from_fn(self.width, self.height, |x, y| {
-            let vector = &self[(x, y)].map(|x| x * 255.);
+            let pixel = &self[(x, y)];
+            let scaled = pixel / pixel.w;
+            let vector = scaled.map(|x| x * 255.);
             let r = vector.x as u8;
             let g = vector.y as u8;
             let b = vector.z as u8;
@@ -80,7 +90,7 @@ impl RenderBuffer {
 
     pub fn to_image_f32(&self) -> Rgb32FImage {
         Rgb32FImage::from_fn(self.width, self.height, |x, y| {
-            let vector = &self[(x, y)];
+            let vector = self[(x, y)] / self[(x, y)].w;
             let r = vector.x as f32;
             let g = vector.y as f32;
             let b = vector.z as f32;
@@ -90,7 +100,7 @@ impl RenderBuffer {
 }
 
 impl Index<(u32, u32)> for RenderBuffer {
-    type Output = Vector3<f64>;
+    type Output = Vector4<f64>;
 
     fn index(&self, (row, column): (u32, u32)) -> &Self::Output {
         let index = row * self.height + column;

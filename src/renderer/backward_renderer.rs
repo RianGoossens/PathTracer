@@ -1,7 +1,7 @@
 use crate::{Ray, RenderBuffer, Renderer, Scene};
 
 use na::Vector3;
-use nalgebra as na;
+use nalgebra::{self as na, Vector4};
 
 pub struct BackwardRenderer {
     pub max_bounces: u8,
@@ -49,7 +49,8 @@ impl Renderer for BackwardRenderer {
             for y in 0..height {
                 let ray = scene.camera.get_ray(x, y);
 
-                render_buffer[(x, y)] = self.sample_color(&ray, scene);
+                let color = self.sample_color(&ray, scene);
+                render_buffer[(x, y)] = Vector4::new(color.x, color.y, color.z, 1.);
             }
         }
 

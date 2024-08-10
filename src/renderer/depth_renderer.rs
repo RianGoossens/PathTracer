@@ -1,4 +1,4 @@
-use nalgebra::Vector3;
+use nalgebra::{Vector3, Vector4};
 
 use crate::{RenderBuffer, Renderer};
 
@@ -53,7 +53,7 @@ impl Renderer for DepthRenderer {
         for x in 0..scene.camera.width {
             for y in 0..scene.camera.height {
                 let depth = buffer[y as usize * scene.camera.width as usize + x as usize];
-                render_buffer[(x, y)] = Vector3::new(depth, depth, depth);
+                render_buffer[(x, y)] = Vector4::new(depth, depth, depth, 1.);
             }
         }
 

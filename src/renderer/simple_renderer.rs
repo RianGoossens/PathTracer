@@ -1,6 +1,6 @@
 use crate::{reflect, RenderBuffer, Renderer, Scene};
 
-use nalgebra as na;
+use nalgebra::{self as na, Vector4};
 
 use na::Vector3;
 
@@ -29,7 +29,7 @@ impl Renderer for SimpleRenderer {
 
                     let lightness = angle.max(0.);
 
-                    render_buffer[(x, y)] = Vector3::new(lightness, lightness, lightness);
+                    render_buffer[(x, y)] = Vector4::new(lightness, lightness, lightness, 1.);
                 }
             }
         }

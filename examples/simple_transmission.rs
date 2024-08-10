@@ -4,7 +4,7 @@ use path_tracer::{
     aperture::PinholeAperture,
     camera::CameraSettings,
     object::ObjectDefinition,
-    renderer::ConeRenderer,
+    renderer::{BDPTRenderer, ConeRenderer},
     shape::Cuboid,
     Camera, Material, Renderer, Scene, Sphere,
 };
@@ -13,7 +13,7 @@ use nalgebra as na;
 
 use na::Vector3;
 
-const NUM_SAMPLES: usize = 10;
+const NUM_SAMPLES: usize = 100;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -49,7 +49,7 @@ fn main() {
 
     let sphere_b = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
-        material: Material::new_reflective(Vector3::new(0.1, 0.9, 0.1), 0.1, 0.5, ior),
+        material: Material::new_reflective(Vector3::new(0.1, 0.9, 0.1), 0., 0.75, ior),
         z: 0.3,
         ..Default::default()
     };

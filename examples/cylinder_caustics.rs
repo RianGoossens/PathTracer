@@ -5,7 +5,8 @@ use path_tracer::{
     camera::CameraSettings,
     object::ObjectDefinition,
     renderer::ConeRenderer,
-    shape::{Cylinder, Plane}, Camera, Material, Renderer, Scene, Sphere,
+    shape::{Cylinder, Plane},
+    Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -65,7 +66,7 @@ fn main() {
     //let render_buffer = render_buffer.median_filter(9);
     println!("Rendering took {:?}", start.elapsed());
 
-    let image = render_buffer.srgb().to_image_u8();
+    let image = render_buffer.to_image_u8();
 
     image.save("image.png").expect("Could not save image");
 

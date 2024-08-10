@@ -1,7 +1,7 @@
 use crate::{Material, Ray, RenderBuffer, Renderer, Scene};
 
 use na::Vector3;
-use nalgebra::{self as na, Point3};
+use nalgebra::{self as na, Point3, Vector4};
 
 struct CameraPathVertex<'a> {
     pub position: Point3<f64>,
@@ -157,7 +157,7 @@ impl ConeRenderer {
 
         let last_camera_vertex = camera_path.last().unwrap();
         let mut total_importance = last_camera_vertex.accumulated_likelihood
-            / last_camera_vertex.accumulated_distance.powi(2); //1. / camera_path.len() as f64;
+            / last_camera_vertex.accumulated_distance.powi(2);
         let mut total_light = total_importance * last_camera_vertex.accumulated_emission;
 
         for vertex_camera in &camera_path {
@@ -207,16 +207,10 @@ impl Renderer for ConeRenderer {
 
         for x in 0..width {
             for y in 0..height {
-                let mut total_weight = 0.;
-                let mut total_color = Vector3::zeros();
-                for _ in 0..10 {
-                    let ray = scene.camera.get_ray(x, y);
+                let ray = scene.camera.get_ray(x, y);
 
-                    let (color, weight) = self.sample_color(&ray, scene);
-                    total_color += color;
-                    total_weight += weight;
-                }
-                render_buffer[(x, y)] = total_color / total_weight;
+                let (color, weight) = self.sample_color(&ray, scene);
+                render_buffer[(x, y)] = Vector4::new(color.x, color.y, color.z, weight);
             }
         }
 

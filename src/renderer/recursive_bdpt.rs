@@ -1,5 +1,5 @@
 use na::{Point3, Vector3};
-use nalgebra as na;
+use nalgebra::{self as na, Vector4};
 
 use crate::{Material, Ray, RenderBuffer, Renderer, Scene};
 
@@ -154,7 +154,8 @@ impl Renderer for RecursiveBDPT {
             for y in 0..height {
                 let ray = scene.camera.get_ray(x, y);
 
-                render_buffer[(x, y)] = self.sample_color(&ray, scene);
+                let color = self.sample_color(&ray, scene);
+                render_buffer[(x, y)] = Vector4::new(color.x, color.y, color.z, 1.);
             }
         }
 

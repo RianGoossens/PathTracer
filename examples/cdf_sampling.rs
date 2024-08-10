@@ -1,4 +1,4 @@
-use nalgebra::Vector3;
+use nalgebra::{Vector3, Vector4};
 use path_tracer::RenderBuffer;
 use rand::{thread_rng, Rng};
 
@@ -23,7 +23,7 @@ fn main() {
 
     for i in 0..SIZE {
         for j in 0..SIZE {
-            render[(i, j)] = Vector3::new(rng.gen(), rng.gen(), rng.gen());
+            render[(i, j)] = Vector4::new(rng.gen(), rng.gen(), rng.gen(), 1.);
         }
     }
 
