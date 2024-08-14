@@ -1,7 +1,10 @@
 use std::{f64::consts::TAU, time::Instant};
 
 use path_tracer::{
-    aperture::PinholeAperture, object::ObjectDefinition, renderer::BDPTRenderer, shape::Cuboid,
+    aperture::PinholeAperture,
+    object::ObjectDefinition,
+    renderer::{BDPTRenderer, ConeRenderer},
+    shape::Cuboid,
     Camera, Material, Renderer, Scene, Sphere,
 };
 
@@ -75,7 +78,7 @@ fn main() {
 
     let start = Instant::now();
 
-    let renderer = BDPTRenderer::new(10).parallel(NUM_SAMPLES);
+    let renderer = ConeRenderer::new(10).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

@@ -6,7 +6,7 @@ use path_tracer::{
     object::ObjectDefinition,
     renderer::ConeRenderer,
     shape::{Cylinder, Plane},
-    Camera, Material, Renderer, Scene, Sphere,
+    BackwardRenderer, Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -42,7 +42,7 @@ fn main() {
 
     let cylinder = ObjectDefinition {
         shape: Box::new(Cylinder::new(1.0, 0.8)),
-        material: Material::new_reflective(Vector3::new(0.99, 0.1, 0.1), 0., 0., 1.),
+        material: Material::new_reflective(Vector3::new(0.99, 0.1, 0.1), 0.01, 0., 1.),
         y: -0.75,
         rx: -TAU / 4.,
         ..Default::default()
@@ -50,7 +50,7 @@ fn main() {
 
     let top_light = ObjectDefinition {
         shape: Box::new(Sphere::new(0.5)),
-        material: Material::new(Vector3::new(1.0, 1.0, 1.0) * 5., 1., true),
+        material: Material::new(Vector3::new(1.0, 1.0, 1.0) * 1., 1., true),
         x: 1.5,
         y: 1.0,
         z: 2.0,
@@ -66,7 +66,7 @@ fn main() {
     //let render_buffer = render_buffer.median_filter(9);
     println!("Rendering took {:?}", start.elapsed());
 
-    let image = render_buffer.to_image_u8();
+    let image = render_buffer.srgb().to_image_u8();
 
     image.save("image.png").expect("Could not save image");
 

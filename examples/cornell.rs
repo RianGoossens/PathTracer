@@ -4,7 +4,7 @@ use path_tracer::{
     aperture::RegularPolygonAperture,
     camera::CameraSettings,
     object::ObjectDefinition,
-    renderer::RecursiveBDPT,
+    renderer::{BDPTRenderer, ConeRenderer, RecursiveBDPT},
     shape::{Cuboid, Plane},
     Camera, Material, Renderer, Scene, Sphere,
 };
@@ -126,7 +126,7 @@ fn main() {
     );
 
     let start = Instant::now();
-    let renderer = RecursiveBDPT::new(5).parallel(NUM_SAMPLES);
+    let renderer = ConeRenderer::new(5).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     //let render_buffer = render_buffer.median_filter(3);

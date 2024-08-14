@@ -6,12 +6,14 @@ use nalgebra::{self as na, Point3, Vector4};
 struct CameraPathVertex<'a> {
     pub position: Point3<f64>,
     pub normal: Vector3<f64>,
+    pub path_incoming: Vector3<f64>,
     pub path_direction: Vector3<f64>,
     pub material: &'a Material,
     pub accumulated_absorption: Vector3<f64>,
     pub accumulated_emission: Vector3<f64>,
     pub accumulated_distance: f64,
-    pub accumulated_likelihood: f64,
+    pub accumulated_backward_likelihood: f64,
+    pub accumulated_forward_likelihood: f64,
 }
 
 pub struct ConeRenderer {
@@ -35,7 +37,8 @@ impl ConeRenderer {
         let mut accumulated_absorption = Vector3::new(1., 1., 1.);
         let mut accumulated_emission = Vector3::zeros();
         let mut accumulated_distance = 0.;
-        let mut accumulated_likelihood = 1.;
+        let mut accumulated_backward_likelihood = 1.;
+        let mut accumulated_forward_likelihood = 1.;
         let mut path = vec![];
 
         let mut current_ray = *ray;
@@ -50,17 +53,19 @@ impl ConeRenderer {
                 accumulated_absorption.component_mul_assign(
                     &material.absorption_color(&intersection.position.coords),
                 );
-                accumulated_distance += intersection.local_distance;
+                accumulated_distance += na::distance(&current_ray.origin, &intersection.position);
 
                 let current_vertex = CameraPathVertex {
                     position: intersection.position,
                     normal: intersection.normal,
+                    path_incoming: Vector3::zeros(),
                     path_direction: -current_ray.direction,
                     material,
                     accumulated_absorption,
                     accumulated_emission,
                     accumulated_distance,
-                    accumulated_likelihood,
+                    accumulated_backward_likelihood,
+                    accumulated_forward_likelihood,
                 };
 
                 path.push(current_vertex);
@@ -68,15 +73,21 @@ impl ConeRenderer {
                 if _bounce == self.max_bounces - 1 {
                     break;
                 }
-                let interaction = material.interact2(&current_ray, &intersection);
+                let interaction = material.interact(&current_ray, &intersection);
 
                 if let Some(outgoing) = interaction.outgoing {
-                    let likelihood = material.likelihood(
+                    let forward_likelihood = material.likelihood(
                         &-outgoing.direction,
                         &-current_ray.direction,
                         &intersection.normal,
                     );
-                    accumulated_likelihood *= likelihood;
+                    let backward_likelihood = material.likelihood(
+                        &current_ray.direction,
+                        &outgoing.direction,
+                        &intersection.normal,
+                    );
+                    accumulated_backward_likelihood *= backward_likelihood;
+                    accumulated_forward_likelihood *= forward_likelihood;
 
                     current_ray = outgoing;
                 } else {
@@ -96,17 +107,20 @@ impl ConeRenderer {
         let mut accumulated_absorption = Vector3::new(1., 1., 1.);
         let mut accumulated_emission = light.material().emission_color();
         let mut accumulated_distance = 0.;
-        let mut accumulated_likelihood = 1.;
+        let mut accumulated_backward_likelihood = 1.;
+        let mut accumulated_forward_likelihood = 1.;
 
         let first_vertex = CameraPathVertex {
             position: current_ray.origin,
             normal: current_ray.direction,
+            path_incoming: -current_ray.direction,
             path_direction: current_ray.direction,
             material: light.material(),
             accumulated_absorption,
             accumulated_emission,
             accumulated_distance,
-            accumulated_likelihood,
+            accumulated_backward_likelihood,
+            accumulated_forward_likelihood,
         };
 
         let mut path = vec![first_vertex];
@@ -114,7 +128,7 @@ impl ConeRenderer {
         for _bounce in 0..self.max_bounces {
             if let Some((object, intersection)) = scene.intersection(&current_ray) {
                 let material = object.material();
-                let interaction = material.interact2(&current_ray, &intersection);
+                let interaction = material.interact(&current_ray, &intersection);
 
                 if let Some(outgoing) = interaction.outgoing {
                     let current_absorption =
@@ -128,22 +142,31 @@ impl ConeRenderer {
                     let current_vertex = CameraPathVertex {
                         position: intersection.position,
                         normal: intersection.normal,
+                        path_incoming: current_ray.direction,
                         path_direction: outgoing.direction,
                         material,
                         accumulated_absorption,
                         accumulated_emission,
                         accumulated_distance,
-                        accumulated_likelihood,
+                        accumulated_backward_likelihood,
+                        accumulated_forward_likelihood,
                     };
 
                     path.push(current_vertex);
 
-                    let likelihood = material.likelihood(
+                    let forward_likelihood = material.likelihood(
                         &current_ray.direction,
                         &outgoing.direction,
                         &intersection.normal,
                     );
-                    accumulated_likelihood *= likelihood;
+                    let backward_likelihood = material.likelihood(
+                        &-outgoing.direction,
+                        &-current_ray.direction,
+                        &intersection.normal,
+                    );
+
+                    accumulated_backward_likelihood *= backward_likelihood;
+                    accumulated_forward_likelihood *= forward_likelihood;
 
                     current_ray = outgoing;
                 } else {
@@ -158,20 +181,34 @@ impl ConeRenderer {
     }
 
     fn sample_color(&self, ray: &Ray, scene: &Scene) -> (Vector3<f64>, f64) {
+        const FORWARD_WEIGHT: f64 = 0.5;
+        const BACKWARD_WEIGHT: f64 = 1. - FORWARD_WEIGHT;
+
         let camera_path = self.sample_camera_path(ray, scene);
         let light_path = self.sample_light_path(scene);
 
         let mut total_importance = 0.;
         let mut total_light = Vector3::zeros();
+        let mut total_samples = 0;
 
         if let Some(last_camera_vertex) = camera_path.last() {
-            total_importance += if last_camera_vertex.material.is_emissive() {
-                last_camera_vertex.accumulated_likelihood
-                    / last_camera_vertex.accumulated_distance.powi(2)
-            } else {
-                0.
-            };
-            total_light += total_importance * last_camera_vertex.accumulated_emission;
+            if last_camera_vertex.material.is_emissive() {
+                let backwards_importance = last_camera_vertex.accumulated_backward_likelihood;
+                let forwards_importance = last_camera_vertex.accumulated_forward_likelihood;
+
+                if backwards_importance > 0. {
+                    total_samples += 1;
+
+                    total_importance = 100.
+                        * (last_camera_vertex.accumulated_emission.mean() / backwards_importance);
+                    //total_importance =
+                    //    backwards_importance / last_camera_vertex.accumulated_distance.powi(2);
+                    //(BACKWARD_WEIGHT * backwards_importance + FORWARD_WEIGHT * forwards_importance);
+                    //total_importance = 100.;
+                    total_light += last_camera_vertex.accumulated_emission * total_importance;
+                    // last_camera_vertex.accumulated_distance.powi(2)
+                }
+            }
         }
 
         for vertex_camera in &camera_path {
@@ -179,9 +216,7 @@ impl ConeRenderer {
                 continue;
             }
             for vertex_light in &light_path {
-                if vertex_camera.normal.dot(&vertex_light.normal) < 0.
-                    && scene.is_visible(&vertex_camera.position, &vertex_light.position)
-                {
+                if scene.is_visible(&vertex_light.position, &vertex_camera.position) {
                     let current_light = vertex_light
                         .accumulated_emission
                         .component_mul(&vertex_camera.accumulated_absorption)
@@ -191,31 +226,63 @@ impl ConeRenderer {
                     let edge_direction = edge.normalize();
                     let edge_distance = edge.magnitude();
 
-                    let edge_importance = vertex_camera.material.likelihood(
+                    let edge_importance_forwards = vertex_camera.material.likelihood(
                         &edge_direction,
                         &vertex_camera.path_direction,
                         &vertex_camera.normal,
+                    ) * vertex_light.material.likelihood(
+                        &vertex_light.path_incoming,
+                        &edge_direction,
+                        &vertex_light.normal,
+                    );
+                    let edge_importance_backwards = vertex_camera.material.likelihood(
+                        &-vertex_camera.path_direction,
+                        &-edge_direction,
+                        &vertex_camera.normal,
+                    ) * vertex_light.material.likelihood(
+                        &-edge_direction,
+                        &-vertex_light.path_incoming,
+                        &vertex_light.normal,
                     );
 
-                    let distance = vertex_camera.accumulated_distance
-                        + vertex_light.accumulated_distance
+                    let distance = 1.
+                        + vertex_camera.accumulated_distance
+                        //+ vertex_light.accumulated_distance
                         + edge_distance;
-                    let likelihood = vertex_camera.accumulated_likelihood
-                        * vertex_light.accumulated_likelihood
-                        * edge_importance;
-                    let importance = likelihood / distance.powi(2);
+                    let likelihood_backwards = vertex_camera.accumulated_backward_likelihood
+                        * vertex_light.accumulated_backward_likelihood
+                        * edge_importance_backwards;
+                    let likelihood_forwards = vertex_camera.accumulated_forward_likelihood
+                        * vertex_light.accumulated_forward_likelihood
+                        * edge_importance_forwards;
+                    let likelihood = (likelihood_backwards * BACKWARD_WEIGHT
+                        + likelihood_forwards * FORWARD_WEIGHT);
 
-                    total_light += current_light * importance;
-                    total_importance += importance;
+                    let likelihood = vertex_camera.accumulated_backward_likelihood
+                        * vertex_light.accumulated_forward_likelihood
+                        * edge_importance_forwards;
+
+                    if likelihood > 0. {
+                        let importance = current_light.mean() / likelihood; // / distance.powi(2);
+
+                        total_light += current_light * importance / (1. + edge_distance.powi(2));
+                        total_importance += importance;
+                        total_samples += 1;
+                    }
                 }
             }
         }
 
-        if total_importance > 0. {
-            total_light /= total_importance
+        //println!("{total_importance}");
+        if total_samples > 0 && total_importance > 0. {
+            //total_light *= total_importance;
+            total_light /= total_samples as f64 * total_importance;
+        } else {
+            total_light *= 0.;
         }
-        //(total_light * total_importance, total_importance)
+        //total_importance = 1.;
         (total_light, 1.)
+        //(total_light, 1.)
     }
 }
 

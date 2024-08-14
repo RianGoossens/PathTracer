@@ -1,8 +1,10 @@
 use std::time::Instant;
 
 use path_tracer::{
-    aperture::GaussianAperture, object::ObjectDefinition, renderer::RecursiveBDPT, Camera,
-    Inverted, Material, Renderer, Scene, Sphere,
+    aperture::GaussianAperture,
+    object::ObjectDefinition,
+    renderer::{BDPTRenderer, ConeRenderer, RecursiveBDPT},
+    Camera, Inverted, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
@@ -55,7 +57,7 @@ fn main() {
 
     let start = Instant::now();
 
-    let renderer = RecursiveBDPT::new(10).parallel(NUM_SAMPLES);
+    let renderer = ConeRenderer::new(10).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

@@ -136,7 +136,13 @@ impl Material {
                     pdf.likelihood(angle_dot) * transmission
                 }
             }
-            Material::Emissive { .. } => outgoing.dot(normal).max(0.),
+            Material::Emissive { .. } => {
+                if outgoing.dot(normal) > 0. {
+                    1.
+                } else {
+                    0.
+                }
+            }
         }
     }
 

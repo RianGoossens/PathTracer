@@ -37,7 +37,7 @@ fn main() {
         ..Default::default()
     };
 
-    let ior = 1.0;
+    let ior = 1.;
     let sphere_a = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
         material: Material::new_reflective(Vector3::new(0.9, 0.1, 0.1), 0.2, 0.25, ior),
@@ -49,7 +49,7 @@ fn main() {
 
     let sphere_b = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
-        material: Material::new_reflective(Vector3::new(0.1, 1., 0.1), 0.0, 0.75, ior),
+        material: Material::new_reflective(Vector3::new(0.1, 1., 0.1), 0.0, 1., ior),
         z: 0.3,
         ..Default::default()
     };
@@ -70,7 +70,7 @@ fn main() {
         },
         x: 0.,
         y: -4.,
-        z: 0.5,
+        z: 1.5,
         ..Default::default()
     };
 
