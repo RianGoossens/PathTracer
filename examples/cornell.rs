@@ -4,7 +4,7 @@ use path_tracer::{
     aperture::RegularPolygonAperture,
     camera::CameraSettings,
     object::ObjectDefinition,
-    renderer::{BDPTRenderer, ConeRenderer, RecursiveBDPT},
+    renderer::{BDPTRenderer, ConeRenderer, PhotonDirectionRenderer, RecursiveBDPT},
     shape::{Cuboid, Plane},
     Camera, Material, Renderer, Scene, Sphere,
 };
@@ -13,7 +13,7 @@ use nalgebra as na;
 
 use na::Vector3;
 
-const NUM_SAMPLES: usize = 10;
+const NUM_SAMPLES: usize = 100;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -126,7 +126,7 @@ fn main() {
     );
 
     let start = Instant::now();
-    let renderer = ConeRenderer::new(5).parallel(NUM_SAMPLES);
+    let renderer = PhotonDirectionRenderer::new(5).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     //let render_buffer = render_buffer.median_filter(3);

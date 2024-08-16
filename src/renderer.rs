@@ -6,6 +6,7 @@ mod backward_renderer;
 mod bdpt_renderer;
 mod cone_renderer;
 mod depth_renderer;
+mod photon_direction_renderer;
 mod recursive_bdpt;
 mod simple_renderer;
 
@@ -13,6 +14,7 @@ pub use backward_renderer::BackwardRenderer;
 pub use bdpt_renderer::BDPTRenderer;
 pub use cone_renderer::ConeRenderer;
 pub use depth_renderer::{DepthRenderMode, DepthRenderer};
+pub use photon_direction_renderer::PhotonDirectionRenderer;
 pub use recursive_bdpt::RecursiveBDPT;
 pub use simple_renderer::SimpleRenderer;
 

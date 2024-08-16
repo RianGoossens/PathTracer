@@ -1,10 +1,12 @@
 use nalgebra::{Point3, Vector3};
 
 pub mod aperture;
+pub mod bsptree;
 pub mod camera;
 pub mod function_approximation;
 pub mod material;
 pub mod object;
+pub mod octree;
 pub mod ray;
 pub mod render_buffer;
 pub mod renderer;

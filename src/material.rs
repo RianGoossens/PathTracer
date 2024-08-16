@@ -105,6 +105,13 @@ impl Material {
         }
     }
 
+    pub fn roughness(&self) -> f64 {
+        match self {
+            Material::Reflective { roughness, .. } => *roughness,
+            Material::Emissive { .. } => 1.,
+        }
+    }
+
     pub fn likelihood(
         &self,
         incoming: &Vector3<f64>,

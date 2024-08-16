@@ -4,7 +4,7 @@ use path_tracer::{
     aperture::PinholeAperture,
     camera::CameraSettings,
     object::ObjectDefinition,
-    renderer::{BDPTRenderer, ConeRenderer},
+    renderer::{BDPTRenderer, ConeRenderer, PhotonDirectionRenderer},
     shape::Cuboid,
     Camera, Material, Renderer, Scene, Sphere,
 };
@@ -77,7 +77,7 @@ fn main() {
     let scene = Scene::new(camera, vec![plane, sphere_a, sphere_b, sphere_c, light]);
 
     let start = Instant::now();
-    let renderer = ConeRenderer::new(5).parallel(NUM_SAMPLES);
+    let renderer = PhotonDirectionRenderer::new(5).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     println!("Rendering took {:?}", start.elapsed());

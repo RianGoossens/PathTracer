@@ -4,7 +4,7 @@ use path_tracer::{
     aperture::RegularPolygonAperture,
     camera::CameraSettings,
     object::ObjectDefinition,
-    renderer::ConeRenderer,
+    renderer::{ConeRenderer, PhotonDirectionRenderer},
     shape::{Cylinder, Plane},
     BackwardRenderer, Camera, Material, Renderer, Scene, Sphere,
 };
@@ -13,7 +13,7 @@ use nalgebra as na;
 
 use na::Vector3;
 
-const NUM_SAMPLES: usize = 500;
+const NUM_SAMPLES: usize = 100;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -60,7 +60,7 @@ fn main() {
     let scene = Scene::new(camera, vec![bottom_plane, cylinder, top_light]);
 
     let start = Instant::now();
-    let renderer = ConeRenderer::new(10).parallel(NUM_SAMPLES);
+    let renderer = PhotonDirectionRenderer::new(10).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     //let render_buffer = render_buffer.median_filter(9);
