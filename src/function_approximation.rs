@@ -76,7 +76,7 @@ impl FunctionApproximation {
     }
 
     pub fn integrate(&self) -> Self {
-        let mut ys = vec![0.; self.ys.len() + 1];
+        let mut ys = vec![0.; self.ys.len()];
         let mut x = self.start;
         let mut subtotal = 0.;
         let mut previous_y = 0.;
@@ -87,16 +87,6 @@ impl FunctionApproximation {
             *y = subtotal;
             previous_y = current_y;
         }
-
-        Self { ys, ..*self }
-    }
-
-    pub fn normalize(&self) -> Self {
-        let ys = self
-            .ys
-            .iter()
-            .map(|x| x / self.ys[self.ys.len() - 1])
-            .collect();
 
         Self { ys, ..*self }
     }
@@ -162,7 +152,7 @@ impl ProbabilityDensityFunction {
         if value < self.pdf.start || value > self.pdf.end {
             0.
         } else {
-            self.pdf.apply(value).unwrap().min(1.)
+            self.pdf.apply(value).unwrap()
         }
     }
 

@@ -13,7 +13,7 @@ use nalgebra as na;
 
 use na::Vector3;
 
-const NUM_SAMPLES: usize = 100;
+const NUM_SAMPLES: usize = 10000;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -37,7 +37,7 @@ fn main() {
         ..Default::default()
     };
 
-    let ior = 1.;
+    let ior = 3.;
     let sphere_a = ObjectDefinition {
         shape: Box::new(Sphere::new(0.3)),
         material: Material::new_reflective(Vector3::new(0.9, 0.1, 0.1), 0.2, 0.25, ior),

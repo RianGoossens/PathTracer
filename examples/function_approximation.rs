@@ -37,7 +37,7 @@ fn main() {
     println!("{duration:?} {}", total / AMOUNT as f64);
     */
 
-    let _integration = approximation.integrate().normalize().invert();
+    let _integration = approximation.integrate().invert();
     for i in 0..11 {
         let x = i as f64 / 10.;
         println!("{}", approximation.apply(x).unwrap())

@@ -34,8 +34,8 @@ pub enum Material {
 // }
 
 fn ggx(x: f64, roughness: f64) -> f64 {
-    if roughness < 0.001 {
-        if x >= 0.9999 {
+    if roughness < 0.005 {
+        if x >= 0.999 {
             1.
         } else {
             0.

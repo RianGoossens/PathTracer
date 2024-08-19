@@ -4,7 +4,7 @@ use path_tracer::{
     aperture::PinholeAperture,
     camera::CameraSettings,
     object::ObjectDefinition,
-    renderer::RecursiveBDPT,
+    renderer::{PhotonDirectionRenderer, RecursiveBDPT},
     shader::Checkerboard,
     shape::{Cuboid, Plane},
     Camera, Material, Renderer, Scene, Sphere,
@@ -14,7 +14,7 @@ use nalgebra as na;
 
 use na::Vector3;
 
-const NUM_SAMPLES: usize = 1000;
+const NUM_SAMPLES: usize = 100;
 const SIZE: u32 = 300;
 
 fn main() {
@@ -81,7 +81,7 @@ fn main() {
 
     let light = ObjectDefinition {
         shape: Box::new(Sphere::new(1.)),
-        material: Material::new(Vector3::new(1.0, 1.0, 1.0) * 5.0, 1., true),
+        material: Material::new(Vector3::new(1.0, 1.0, 1.0) * 1.0, 1., true),
         x: 1.0,
         y: 1.0,
         z: 3.,
@@ -108,7 +108,7 @@ fn main() {
     );
 
     let start = Instant::now();
-    let renderer = RecursiveBDPT::new(10).parallel(NUM_SAMPLES);
+    let renderer = PhotonDirectionRenderer::new(10).parallel(NUM_SAMPLES);
     let render_buffer = renderer.render(&scene);
 
     //let render_buffer = render_buffer.median_filter(9);
