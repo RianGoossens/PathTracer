@@ -1,30 +1,19 @@
 use core::f64;
 
-use nalgebra::Point3;
+use nalgebra::{Point3, Vector3};
 
 use nalgebra as na;
 
 #[derive(Clone, Copy, Debug)]
-pub enum BSPTreeAxis {
-    X,
-    Y,
-    Z,
-}
+pub struct BSPTreeAxis(Vector3<f64>);
 
 impl BSPTreeAxis {
-    pub fn next(&self) -> Self {
-        match self {
-            BSPTreeAxis::X => BSPTreeAxis::Y,
-            BSPTreeAxis::Y => BSPTreeAxis::Z,
-            BSPTreeAxis::Z => BSPTreeAxis::X,
-        }
+    pub fn random() -> Self {
+        Self(Vector3::<f64>::new_random().normalize())
     }
+
     pub fn get_value(&self, position: &Point3<f64>) -> f64 {
-        match self {
-            BSPTreeAxis::X => position.x,
-            BSPTreeAxis::Y => position.y,
-            BSPTreeAxis::Z => position.z,
-        }
+        position.coords.dot(&self.0)
     }
 }
 
@@ -47,17 +36,13 @@ pub struct BSPElement<T> {
 
 impl<T> BSPElement<T> {
     pub fn get_value(&self, axis: BSPTreeAxis) -> f64 {
-        match axis {
-            BSPTreeAxis::X => self.position.x,
-            BSPTreeAxis::Y => self.position.y,
-            BSPTreeAxis::Z => self.position.z,
-        }
+        axis.get_value(&self.position)
     }
 }
 
 impl<T: Copy> BSPTree<T> {
     pub fn build(mut elements: Vec<BSPElement<T>>) -> Self {
-        Self::build_impl(&mut elements, BSPTreeAxis::X)
+        Self::build_impl(&mut elements, BSPTreeAxis::random())
     }
     fn build_impl(elements: &mut [BSPElement<T>], axis: BSPTreeAxis) -> Self {
         if elements.is_empty() {
@@ -70,8 +55,8 @@ impl<T: Copy> BSPTree<T> {
             let median = elements[elements.len() / 2].get_value(axis);
             let (left, right) = elements.split_at_mut(elements.len() / 2);
 
-            let left = Self::build_impl(left, axis.next());
-            let right = Self::build_impl(right, axis.next());
+            let left = Self::build_impl(left, BSPTreeAxis::random());
+            let right = Self::build_impl(right, BSPTreeAxis::random());
 
             BSPTree::Branch {
                 axis,

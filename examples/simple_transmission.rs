@@ -1,19 +1,15 @@
 use std::{f64::consts::TAU, time::Instant};
 
 use path_tracer::{
-    aperture::PinholeAperture,
-    camera::CameraSettings,
-    object::ObjectDefinition,
-    renderer::PhotonDirectionRenderer,
-    shape::Cuboid,
-    Camera, Material, Renderer, Scene, Sphere,
+    aperture::PinholeAperture, camera::CameraSettings, object::ObjectDefinition,
+    renderer::PhotonDirectionRenderer, shape::Cuboid, Camera, Material, Renderer, Scene, Sphere,
 };
 
 use nalgebra as na;
 
 use na::Vector3;
 
-const NUM_SAMPLES: usize = 10000;
+const NUM_SAMPLES: usize = 100;
 const SIZE: u32 = 300;
 
 fn main() {
