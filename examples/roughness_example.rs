@@ -3,7 +3,7 @@ use std::{f64::consts::TAU, time::Instant};
 use path_tracer::{
     aperture::PinholeAperture,
     object::ObjectDefinition,
-    renderer::{BDPTRenderer, ConeRenderer},
+    renderer::ConeRenderer,
     shape::Cuboid,
     Camera, Material, Renderer, Scene, Sphere,
 };

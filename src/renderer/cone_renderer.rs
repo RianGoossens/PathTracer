@@ -255,8 +255,8 @@ impl ConeRenderer {
                     let likelihood_forwards = vertex_camera.accumulated_forward_likelihood
                         * vertex_light.accumulated_forward_likelihood
                         * edge_importance_forwards;
-                    let likelihood = (likelihood_backwards * BACKWARD_WEIGHT
-                        + likelihood_forwards * FORWARD_WEIGHT);
+                    let likelihood = likelihood_backwards * BACKWARD_WEIGHT
+                        + likelihood_forwards * FORWARD_WEIGHT;
 
                     let likelihood = vertex_camera.accumulated_backward_likelihood
                         * vertex_light.accumulated_forward_likelihood

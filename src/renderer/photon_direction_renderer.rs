@@ -1,9 +1,7 @@
-use std::f64::consts::PI;
 
 use crate::{
     bsptree::{BSPElement, BSPTree},
-    octree::{BoundingBox, HasCoordinate, Octree},
-    scene, Ray, RenderBuffer, Renderer, Scene,
+    octree::{BoundingBox, HasCoordinate}, Ray, RenderBuffer, Renderer, Scene,
 };
 
 use na::{Point3, Vector4};
@@ -74,7 +72,7 @@ impl PhotonDirectionRenderer {
         let mut current_ray = *ray;
 
         let mut path_pdf = 1.;
-        let mut path_distance = 0.;
+        let path_distance = 0.;
 
         for _bounce in 0..self.max_bounces {
             if let Some((object, intersection)) = scene.intersection(&current_ray) {

@@ -4,7 +4,7 @@ use std::{
 };
 
 use image::{Rgb, Rgb32FImage, RgbImage};
-use nalgebra::{Vector3, Vector4};
+use nalgebra::Vector4;
 #[derive(Debug, Clone)]
 pub struct RenderBuffer {
     width: u32,

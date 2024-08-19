@@ -4,7 +4,7 @@ use path_tracer::{
     aperture::PinholeAperture,
     camera::CameraSettings,
     object::ObjectDefinition,
-    renderer::{BDPTRenderer, ConeRenderer, PhotonDirectionRenderer},
+    renderer::PhotonDirectionRenderer,
     shape::Cuboid,
     Camera, Material, Renderer, Scene, Sphere,
 };

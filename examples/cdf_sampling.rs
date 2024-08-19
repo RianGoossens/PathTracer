@@ -1,4 +1,4 @@
-use nalgebra::{Vector3, Vector4};
+use nalgebra::Vector4;
 use path_tracer::RenderBuffer;
 use rand::{thread_rng, Rng};
 
